@@ -23,8 +23,8 @@ const Layout = ({ children }) => {
                 }`}
         >
             <Navbar />
-            <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
-                <div className="rounded-lg shadow-sm bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6">
+            <main className="flex-grow container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
+                <div className="rounded-lg shadow-sm bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-3 sm:p-6">
                     {children}
                 </div>
             </main>
