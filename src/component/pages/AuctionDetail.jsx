@@ -2,19 +2,22 @@
 
 import React, { useState, useEffect, useContext } from "react"
 import { useParams, Link } from "react-router-dom"
-import { auctionService } from "../services/api"
+import { auctionService, userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
-import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCircle } from "lucide-react"
+import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCircle, Mail, Phone, MapPin } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
 import BidHistory from "../auctions/BidHistory"
 import ItemReviews from "../items/ItemReviews"
 import RelatedAuctions from "../auctions/RelatedAuctions"
+import { toast } from "react-hot-toast"
 
 const AuctionDetail = () => {
     const { id } = useParams()
     const { user } = useContext(AuthContext)
     const [auction, setAuction] = useState(null)
+    const [sellerInfo, setSellerInfo] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [sellerLoading, setSellerLoading] = useState(false)
     const [error, setError] = useState(null)
     const [bidAmount, setBidAmount] = useState("")
     const [bidError, setBidError] = useState("")
@@ -22,17 +25,39 @@ const AuctionDetail = () => {
     const [timeLeft, setTimeLeft] = useState("")
     const [activeTab, setActiveTab] = useState("details")
     const [selectedImage, setSelectedImage] = useState(0)
+    const [isUserSeller, setIsUserSeller] = useState(false)
 
     useEffect(() => {
         const fetchAuction = async () => {
             try {
                 const response = await auctionService.getAuctionById(id)
-                setAuction(response.data.data)
+                const auctionData = response.data.data
+                setAuction(auctionData)
 
                 // Set initial bid amount to current price + minimum increment
-                const currentPrice = response.data.data.currentPrice || response.data.data.startPrice
-                const minIncrement = response.data.data.minimumBidIncrement || 1
+                const currentPrice = auctionData.currentPrice || auctionData.startPrice
+                const minIncrement = auctionData.minimumBidIncrement || 1
                 setBidAmount((currentPrice + minIncrement).toString())
+
+                // Check if the current user is the seller
+                if (user && auctionData.seller === user._id) {
+                    setIsUserSeller(true)
+                }
+
+                // Fetch seller information
+                if (auctionData.seller) {
+                    setSellerLoading(true)
+                    try {
+                        const sellerResponse = await userService.getUserById(auctionData.seller)
+                        setSellerInfo(sellerResponse.data.data)
+                        console.log("Seller info:", sellerResponse.data.data)
+                    } catch (sellerError) {
+                        console.error("Error fetching seller information:", sellerError)
+                        toast.error("Failed to load seller information")
+                    } finally {
+                        setSellerLoading(false)
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching auction:", error)
                 setError("Failed to load auction details. Please try again later.")
@@ -42,7 +67,7 @@ const AuctionDetail = () => {
         }
 
         fetchAuction()
-    }, [id])
+    }, [id, user])
 
     useEffect(() => {
         if (!auction) return
@@ -74,6 +99,12 @@ const AuctionDetail = () => {
             return
         }
 
+        // Prevent seller from bidding on their own auction
+        if (isUserSeller) {
+            setBidError("You cannot bid on your own auction")
+            return
+        }
+
         const bidValue = Number.parseFloat(bidAmount)
         const currentPrice = auction.currentPrice || auction.startPrice
         const minIncrement = auction.minimumBidIncrement || 1
@@ -86,17 +117,28 @@ const AuctionDetail = () => {
         setBidError("")
 
         try {
-            await auctionService.placeBid(auction._id, bidValue)
+            // Show loading state
+            setBidSuccess("Processing your bid...")
+
+            // Place the bid
+            const bidResponse = await auctionService.placeBid(auction._id, bidValue)
+            console.log("Bid response:", bidResponse.data)
 
             // Update auction data
             const response = await auctionService.getAuctionById(id)
             setAuction(response.data.data)
 
+            // Show success message
             setBidSuccess("Your bid was placed successfully!")
+            toast.success("Your bid was placed successfully!")
+
+            // Clear success message after 5 seconds
             setTimeout(() => setBidSuccess(""), 5000)
         } catch (error) {
             console.error("Error placing bid:", error)
-            setBidError(error.response?.data?.message || "Failed to place bid. Please try again.")
+            const errorMsg = error.response?.data?.message || "Failed to place bid. Please try again."
+            setBidError(errorMsg)
+            toast.error(errorMsg)
         }
     }
 
@@ -138,7 +180,7 @@ const AuctionDetail = () => {
                         <div className="relative aspect-w-16 aspect-h-9">
                             <img
                                 src={images[selectedImage] || "/placeholder.svg"}
-                                alt={auction.item.title}
+                                alt={auction.title || "Auction image"}
                                 className="w-full h-[400px] object-contain bg-gray-100 dark:bg-gray-900"
                             />
                         </div>
@@ -169,8 +211,8 @@ const AuctionDetail = () => {
                                 <button
                                     onClick={() => setActiveTab("details")}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "details"
-                                            ? "border-rose-600 text-rose-600"
-                                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                        ? "border-rose-600 text-rose-600"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
                                 >
                                     Item Details
@@ -178,8 +220,8 @@ const AuctionDetail = () => {
                                 <button
                                     onClick={() => setActiveTab("bids")}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "bids"
-                                            ? "border-rose-600 text-rose-600"
-                                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                        ? "border-rose-600 text-rose-600"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
                                 >
                                     Bid History
@@ -187,8 +229,8 @@ const AuctionDetail = () => {
                                 <button
                                     onClick={() => setActiveTab("reviews")}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "reviews"
-                                            ? "border-rose-600 text-rose-600"
-                                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                                        ? "border-rose-600 text-rose-600"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
                                 >
                                     Reviews
@@ -200,23 +242,15 @@ const AuctionDetail = () => {
                             {activeTab === "details" && (
                                 <div>
                                     <h2 className="text-xl font-bold mb-4">Item Description</h2>
-                                    <p className="text-gray-700 dark:text-gray-300 mb-6">{auction.item.description}</p>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-6">{auction.description}</p>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                         <div className="flex items-center">
                                             <Tag className="text-rose-600 mr-2" size={18} />
                                             <span className="text-gray-700 dark:text-gray-300">
-                                                <span className="font-medium">Category:</span> {auction.item.category?.name || "N/A"}
+                                                <span className="font-medium">Category:</span> {auction.category || "N/A"}
                                             </span>
                                         </div>
-                                        {auction.item.subcategory && (
-                                            <div className="flex items-center">
-                                                <Tag className="text-rose-600 mr-2" size={18} />
-                                                <span className="text-gray-700 dark:text-gray-300">
-                                                    <span className="font-medium">Subcategory:</span> {auction.item.subcategory.name}
-                                                </span>
-                                            </div>
-                                        )}
                                         <div className="flex items-center">
                                             <Calendar className="text-rose-600 mr-2" size={18} />
                                             <span className="text-gray-700 dark:text-gray-300">
@@ -233,10 +267,10 @@ const AuctionDetail = () => {
 
                                     <h3 className="text-lg font-bold mb-3">Seller Information</h3>
                                     <div className="flex items-center mb-6">
-                                        {auction.seller?.user_picture ? (
+                                        {sellerInfo?.profilePicture ? (
                                             <img
-                                                src={auction.seller.user_picture || "/placeholder.svg"}
-                                                alt={auction.seller.username}
+                                                src={sellerInfo.profilePicture || "/placeholder.svg"}
+                                                alt={sellerInfo.username}
                                                 className="w-10 h-10 rounded-full mr-3"
                                             />
                                         ) : (
@@ -245,26 +279,55 @@ const AuctionDetail = () => {
                                             </div>
                                         )}
                                         <div>
-                                            <p className="font-medium">{auction.seller?.username || "Anonymous"}</p>
+                                            <p className="font-medium">{sellerInfo?.username || "Anonymous"}</p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                                 Member since{" "}
-                                                {auction.seller?.createdAt ? format(new Date(auction.seller.createdAt), "MMMM yyyy") : "N/A"}
+                                                {sellerInfo?.createdAt ? format(new Date(sellerInfo.createdAt), "MMMM yyyy") : "N/A"}
                                             </p>
                                         </div>
 
-                                        {user && user._id !== auction.seller?._id && (
+                                        {user && !isUserSeller && (
                                             <button className="ml-auto flex items-center text-rose-600 hover:text-rose-700 transition-colors">
                                                 <MessageCircle size={18} className="mr-1" />
                                                 <span>Contact</span>
                                             </button>
                                         )}
                                     </div>
+
+                                    {sellerInfo && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                                            {sellerInfo.email && (
+                                                <div className="flex items-center">
+                                                    <Mail className="text-rose-600 mr-2" size={16} />
+                                                    <span className="text-gray-700 dark:text-gray-300 text-sm">
+                                                        {sellerInfo.email}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {sellerInfo.phone && (
+                                                <div className="flex items-center">
+                                                    <Phone className="text-rose-600 mr-2" size={16} />
+                                                    <span className="text-gray-700 dark:text-gray-300 text-sm">
+                                                        {sellerInfo.phone}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {sellerInfo.address && (
+                                                <div className="flex items-center col-span-2">
+                                                    <MapPin className="text-rose-600 mr-2" size={16} />
+                                                    <span className="text-gray-700 dark:text-gray-300 text-sm">
+                                                        {sellerInfo.address}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
                             {activeTab === "bids" && <BidHistory auctionId={auction._id} />}
 
-                            {activeTab === "reviews" && <ItemReviews itemId={auction.item._id} />}
+                            {activeTab === "reviews" && <ItemReviews itemId={auction._id} />}
                         </div>
                     </div>
                 </div>
@@ -272,7 +335,7 @@ const AuctionDetail = () => {
                 {/* Right Column - Auction Info & Bidding */}
                 <div>
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-                        <h1 className="text-2xl font-bold mb-2">{auction.item.title}</h1>
+                        <h1 className="text-2xl font-bold mb-2">{auction.title}</h1>
 
                         <div className="flex items-center text-gray-500 dark:text-gray-400 mb-4">
                             <Clock size={18} className="mr-1" />
@@ -373,7 +436,7 @@ const AuctionDetail = () => {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500 dark:text-gray-400">Item Condition</span>
-                                <span className="font-medium capitalize">{auction.item.item_status || "N/A"}</span>
+                                <span className="font-medium capitalize">{auction.status || "N/A"}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500 dark:text-gray-400">Location</span>
@@ -389,7 +452,7 @@ const AuctionDetail = () => {
             </div>
 
             {/* Related Auctions */}
-            <RelatedAuctions categoryId={auction.item.category?._id} currentAuctionId={auction._id} />
+            <RelatedAuctions categoryId={auction.category} currentAuctionId={auction._id} />
         </div>
     )
 }

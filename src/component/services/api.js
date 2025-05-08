@@ -1,15 +1,25 @@
 import axios from "axios"
 
+// Define the API base URL - updated to port 3000
+const API_BASE_URL = "https://be-mazady.vercel.app/api"
+
+// Log the base URL for debugging
+console.log("API Base URL:", API_BASE_URL)
+
+// Create the api instance with the correct base URL
 export const api = axios.create({
-    baseURL: "/api",
+    baseURL: API_BASE_URL,
     headers: {
         "Content-Type": "application/json",
     },
+    timeout: 30000, // 30 seconds timeout
+    withCredentials: true, // Important for cookies/auth
 })
 
 // Add a request interceptor to include the token in all requests
 api.interceptors.request.use(
     (config) => {
+        console.log(`Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`)
         const token = localStorage.getItem("token")
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
@@ -17,6 +27,7 @@ api.interceptors.request.use(
         return config
     },
     (error) => {
+        console.error("Request error:", error)
         return Promise.reject(error)
     },
 )
@@ -24,10 +35,15 @@ api.interceptors.request.use(
 // Add a response interceptor to handle token expiration
 api.interceptors.response.use(
     (response) => {
+        console.log(`Response from ${response.config.url}:`, response.status)
         return response
     },
     (error) => {
-        if (error.response && error.response.status === 401) {
+        if (error.code === "ERR_NETWORK") {
+            console.error(
+                "Network Error: Cannot connect to the API server. Please check if the backend is running on port 3000.",
+            )
+        } else if (error.response && error.response.status === 401) {
             // Token expired or invalid
             localStorage.removeItem("token")
             localStorage.removeItem("user_id")
@@ -40,12 +56,14 @@ api.interceptors.response.use(
 export const auctionService = {
     getAuctions: () => api.get("/auctions"),
     getAuctionById: (id) => api.get(`/auctions/${id}`),
-    placeBid: (auctionId, amount) =>
-        api.post(`/auctions/${auctionId}/bid`, {
-            auction: auctionId,
-            bidder: localStorage.getItem("user_id"),
-            amount,
-        }),
+    placeBid: (auctionId, amount) => {
+        const bidderId = localStorage.getItem("user_id");
+        console.log(`Placing bid: Auction ID: ${auctionId}, Bidder ID: ${bidderId}, Amount: ${amount}`);
+        return api.post(`/auctions/${auctionId}/bid`, {
+            bidder: bidderId,
+            amount: amount
+        });
+    },
     endAuction: (auctionId) => api.post(`/auctions/${auctionId}/end`),
     createAuction: (formData) =>
         api.post("/auctions", formData, {
@@ -80,8 +98,9 @@ export const itemService = {
 
 export const userService = {
     getProfile: () => api.get("/users/MyProfile"),
+    getUserById: (userId) => api.get(`/users/${userId}`),
     updateProfile: (userData) =>
-        api.put(`/users/${localStorage.getItem("user_id")}`, userData, {
+        api.patch(`/users/${localStorage.getItem("user_id")}`, userData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
@@ -93,6 +112,10 @@ export const userService = {
         api.patch(`/users/${localStorage.getItem("user_id")}/password`, {
             currentPassword,
             newPassword,
+        }),
+    updateRole: (role) =>
+        api.patch(`/users/${localStorage.getItem("user_id")}/role`, {
+            role,
         }),
 }
 
