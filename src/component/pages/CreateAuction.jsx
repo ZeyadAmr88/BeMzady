@@ -1,14 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { useNavigate } from "react-router-dom"
 import { auctionService, categoryService } from "../services/api"
 import { toast } from "react-hot-toast"
 import { handleApiError } from "../utils/errorHandler"
 import { Upload, Calendar, DollarSign } from "lucide-react"
+import { AuthContext } from "../contexts/AuthContext"
 
 const CreateAuction = () => {
     const navigate = useNavigate()
+    const { user } = useContext(AuthContext)
     const [loading, setLoading] = useState(false)
     const [categories, setCategories] = useState([])
     const [formData, setFormData] = useState({
@@ -100,17 +102,7 @@ const CreateAuction = () => {
             setPreviewImages((prev) => prev.filter((_, i) => i !== index))
         }
     }
-    const uploadToCloudinary = async (file) => {
-        const data = new FormData()
-        data.append("file", file)
-        data.append("upload_preset", "BeMzady") // ← غير دي بـ upload preset بتاعك
-        const res = await fetch("https://api.cloudinary.com/v1_1/dsf7jh6jb/image/upload", {
-            method: "POST",
-            body: data,
-        })
-        const json = await res.json()
-        return json.secure_url // ده اللينك اللي هتبعتُه للباك
-    }
+
     const validateForm = () => {
         const newErrors = {}
 
@@ -163,25 +155,39 @@ const CreateAuction = () => {
         setLoading(true)
 
         try {
-            const formDataToSend = {
-                ...formData,
-            }
+            // Create a FormData object to send to the backend
+            const formDataToSend = new FormData()
 
-            // ✨ Upload cover image to Cloudinary
+            // Add all the text fields
+            formDataToSend.append("title", formData.title)
+            formDataToSend.append("description", formData.description)
+            formDataToSend.append("category", formData.category)
+            formDataToSend.append("startPrice", formData.startPrice)
+            formDataToSend.append("reservePrice", formData.reservePrice)
+            formDataToSend.append("buyNowPrice", formData.buyNowPrice)
+            formDataToSend.append("minimumBidIncrement", formData.minimumBidIncrement)
+            formDataToSend.append("startDate", formData.startDate)
+            formDataToSend.append("endDate", formData.endDate)
+
+            // Add the seller ID
+            const sellerId = user?._id || localStorage.getItem("user_id")
+            formDataToSend.append("seller", sellerId)
+
+            console.log("Creating auction with seller ID:", sellerId)
+
+            // Add the cover image file directly
             if (formData.auctionCover) {
-                const coverUrl = await uploadToCloudinary(formData.auctionCover)
-                formDataToSend.auctionCover = coverUrl
+                formDataToSend.append("auctionCover", formData.auctionCover)
             }
 
-            // ✨ Upload additional images to Cloudinary
-            const imageUrls = []
-            for (const file of formData.auctionImages) {
-                const imageUrl = await uploadToCloudinary(file)
-                imageUrls.push(imageUrl)
+            // Add additional image files directly
+            if (formData.auctionImages && formData.auctionImages.length > 0) {
+                for (let i = 0; i < formData.auctionImages.length; i++) {
+                    formDataToSend.append("auctionImages", formData.auctionImages[i])
+                }
             }
-            formDataToSend.auctionImages = imageUrls
 
-            // ✉️ ابعت داتا نصية مش FormData
+            // Send the FormData to the backend
             const response = await auctionService.createAuction(formDataToSend)
             toast.success("Auction created successfully!")
             navigate(`/auctions/${response.data._id}`)

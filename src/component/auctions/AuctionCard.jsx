@@ -46,7 +46,7 @@ const AuctionCard = ({ auction }) => {
         }
 
         checkFavorite()
-    }, [user, auction.item._id])
+    }, [user, auction._id])
 
     const toggleFavorite = async (e) => {
         e.preventDefault()
@@ -76,7 +76,7 @@ const AuctionCard = ({ auction }) => {
                 <div className="relative">
                     <img
                         src={auction.auctionCover || "/placeholder.svg?height=200&width=300"}
-                        alt={auction.item.title}
+                        alt={auction.title}
                         className="w-full h-48 object-cover"
                     />
                     <button
@@ -97,10 +97,10 @@ const AuctionCard = ({ auction }) => {
 
                 <div className="p-4">
                     <h3 className="text-lg font-semibold mb-2 group-hover:text-rose-600 transition-colors line-clamp-1">
-                        {auction.item.title}
+                        {auction.title}
                     </h3>
 
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">{auction.item.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">{auction.description}</p>
 
                     <div className="flex justify-between items-center">
                         <div>

@@ -1,21 +1,52 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { api } from "../services/api"
+import { api, bidService, userService } from "../services/api"
 import { formatDistanceToNow } from "date-fns"
 import { User } from "lucide-react"
 
 const BidHistory = ({ auctionId }) => {
     const [bids, setBids] = useState([])
     const [loading, setLoading] = useState(true)
+    const [userLoading, setUserLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [bidderInfo, setBidderInfo] = useState({})
 
     useEffect(() => {
         const fetchBids = async () => {
             try {
+                // Get auction data with bids
                 const response = await api.get(`/auctions/${auctionId}`)
                 const auctionData = response.data.data
-                setBids(auctionData.bids || [])
+                const bidsList = auctionData.bids || []
+                setBids(bidsList)
+
+                // Fetch user information for each bidder
+                const bidderIds = [...new Set(bidsList.map(bid => bid.bidder))]
+                const bidderData = {}
+
+                if (bidderIds.length > 0) {
+                    setUserLoading(true)
+                    try {
+                        await Promise.all(
+                            bidderIds.map(async (bidderId) => {
+                                if (bidderId) {
+                                    try {
+                                        const userResponse = await userService.getUserById(bidderId)
+                                        bidderData[bidderId] = userResponse.data.data
+                                        console.log(`Fetched user info for ${bidderId}:`, userResponse.data.data)
+                                    } catch (userError) {
+                                        console.error(`Error fetching user ${bidderId}:`, userError)
+                                    }
+                                }
+                            })
+                        )
+                    } finally {
+                        setUserLoading(false)
+                    }
+                }
+
+                setBidderInfo(bidderData)
             } catch (error) {
                 console.error("Error fetching bid history:", error)
                 setError("Failed to load bid history. Please try again later.")
@@ -49,7 +80,14 @@ const BidHistory = ({ auctionId }) => {
 
     return (
         <div>
-            <h2 className="text-xl font-bold mb-4">Bid History</h2>
+            <h2 className="text-xl font-bold mb-4">
+                Bid History
+                {userLoading && (
+                    <span className="ml-2 inline-block">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-rose-600"></div>
+                    </span>
+                )}
+            </h2>
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-800">
@@ -82,10 +120,10 @@ const BidHistory = ({ auctionId }) => {
                             >
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
-                                        {bid.bidder?.user_picture ? (
+                                        {bidderInfo[bid.bidder]?.profilePicture ? (
                                             <img
-                                                src={bid.bidder.user_picture || "/placeholder.svg"}
-                                                alt={bid.bidder.username}
+                                                src={bidderInfo[bid.bidder].profilePicture || "/placeholder.svg"}
+                                                alt={bidderInfo[bid.bidder].username}
                                                 className="w-8 h-8 rounded-full mr-3"
                                             />
                                         ) : (
@@ -93,14 +131,23 @@ const BidHistory = ({ auctionId }) => {
                                                 <User size={16} className="text-gray-500 dark:text-gray-400" />
                                             </div>
                                         )}
-                                        <span className="font-medium">{bid.bidder?.username || "Anonymous"}</span>
+                                        <span className="font-medium">
+                                            {bidderInfo[bid.bidder]?.username || "Anonymous"}
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className="text-rose-600 font-medium">${bid.amount.toFixed(2)}</span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                                    {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
+                                    {bid.createdAt ? (
+                                        <div>
+                                            <div>{formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}</div>
+                                            <div className="text-xs mt-1">{new Date(bid.createdAt).toLocaleString()}</div>
+                                        </div>
+                                    ) : (
+                                        "Unknown time"
+                                    )}
                                 </td>
                             </tr>
                         ))}
