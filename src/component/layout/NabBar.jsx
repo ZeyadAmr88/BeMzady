@@ -73,12 +73,12 @@ const Navbar = () => {
             ? "bg-gray-900/80 border-b border-gray-800"
             : "bg-white/80 border-b border-gray-200"
             } shadow-sm`}>
-            <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+            <div className="container mx-auto px-2 sm:px-4">
+                <div className="flex items-center justify-between h-14 sm:h-16">
                     {/* Logo */}
                     <div className="flex items-center">
                         <Link to="/" className="flex items-center group">
-                            <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-rose-500 bg-clip-text text-transparent group-hover:from-rose-500 group-hover:to-rose-400 transition-all duration-300">
+                            <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-rose-500 bg-clip-text text-transparent group-hover:from-rose-500 group-hover:to-rose-400 transition-all duration-300">
                                 BeMazady
                             </span>
                         </Link>

@@ -172,8 +172,8 @@ const AuctionDetail = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {/* Left Column - Images */}
                 <div className="lg:col-span-2">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -181,17 +181,17 @@ const AuctionDetail = () => {
                             <img
                                 src={images[selectedImage] || "/placeholder.svg"}
                                 alt={auction.title || "Auction image"}
-                                className="w-full h-[400px] object-contain bg-gray-100 dark:bg-gray-900"
+                                className="w-full h-[250px] sm:h-[350px] md:h-[400px] object-contain bg-gray-100 dark:bg-gray-900"
                             />
                         </div>
 
                         {images.length > 1 && (
-                            <div className="p-4 flex space-x-2 overflow-x-auto">
+                            <div className="p-2 sm:p-4 flex space-x-1 sm:space-x-2 overflow-x-auto">
                                 {images.map((image, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setSelectedImage(index)}
-                                        className={`w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border-2 ${selectedImage === index ? "border-rose-600" : "border-transparent"}`}
+                                        className={`w-12 h-12 sm:w-16 sm:h-16 rounded-md overflow-hidden flex-shrink-0 border-2 ${selectedImage === index ? "border-rose-600" : "border-transparent"}`}
                                     >
                                         <img
                                             src={image || "/placeholder.svg"}
@@ -205,12 +205,12 @@ const AuctionDetail = () => {
                     </div>
 
                     {/* Tabs */}
-                    <div className="mt-8">
+                    <div className="mt-4 sm:mt-8">
                         <div className="border-b border-gray-200 dark:border-gray-700">
-                            <nav className="flex space-x-8">
+                            <nav className="flex space-x-2 sm:space-x-8">
                                 <button
                                     onClick={() => setActiveTab("details")}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "details"
+                                    className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "details"
                                         ? "border-rose-600 text-rose-600"
                                         : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
@@ -219,7 +219,7 @@ const AuctionDetail = () => {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("bids")}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "bids"
+                                    className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "bids"
                                         ? "border-rose-600 text-rose-600"
                                         : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
@@ -228,7 +228,7 @@ const AuctionDetail = () => {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("reviews")}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "reviews"
+                                    className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "reviews"
                                         ? "border-rose-600 text-rose-600"
                                         : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                         }`}
@@ -334,26 +334,26 @@ const AuctionDetail = () => {
 
                 {/* Right Column - Auction Info & Bidding */}
                 <div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-                        <h1 className="text-2xl font-bold mb-2">{auction.title}</h1>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                        <h1 className="text-xl sm:text-2xl font-bold mb-2">{auction.title}</h1>
 
-                        <div className="flex items-center text-gray-500 dark:text-gray-400 mb-4">
-                            <Clock size={18} className="mr-1" />
-                            <span>{timeLeft}</span>
+                        <div className="flex items-center text-gray-500 dark:text-gray-400 mb-3 sm:mb-4">
+                            <Clock size={16} className="sm:w-[18px] sm:h-[18px] mr-1" />
+                            <span className="text-sm sm:text-base">{timeLeft}</span>
                         </div>
 
-                        <div className="mb-6">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Current Bid</p>
-                            <p className="text-3xl font-bold text-rose-600">
+                        <div className="mb-4 sm:mb-6">
+                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Current Bid</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-rose-600">
                                 ${(auction.currentPrice || auction.startPrice).toFixed(2)}
                             </p>
                             {auction.buyNowPrice && (
-                                <p className="text-sm mt-1">
+                                <p className="text-xs sm:text-sm mt-1">
                                     <span className="text-gray-500 dark:text-gray-400">Buy Now: </span>
                                     <span className="font-medium">${auction.buyNowPrice.toFixed(2)}</span>
                                 </p>
                             )}
-                            <p className="text-sm mt-1">
+                            <p className="text-xs sm:text-sm mt-1">
                                 <span className="text-gray-500 dark:text-gray-400">Reserve Price: </span>
                                 <span className="font-medium">${auction.reservePrice.toFixed(2)}</span>
                             </p>
@@ -361,32 +361,32 @@ const AuctionDetail = () => {
 
                         {!isAuctionEnded ? (
                             <form onSubmit={handleBid}>
-                                <div className="mb-4">
-                                    <label htmlFor="bidAmount" className="block text-sm font-medium mb-1">
+                                <div className="mb-3 sm:mb-4">
+                                    <label htmlFor="bidAmount" className="block text-xs sm:text-sm font-medium mb-1">
                                         Your Bid (Minimum Increment: ${auction.minimumBidIncrement.toFixed(2)})
                                     </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <DollarSign size={18} className="text-gray-500 dark:text-gray-400" />
+                                            <DollarSign size={16} className="sm:w-[18px] sm:h-[18px] text-gray-500 dark:text-gray-400" />
                                         </div>
                                         <input
                                             type="number"
                                             id="bidAmount"
                                             step="0.01"
                                             min={(auction.currentPrice || auction.startPrice) + auction.minimumBidIncrement}
-                                            className="pl-10 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-rose-500 focus:ring-rose-500 dark:bg-gray-700 dark:text-white"
+                                            className="pl-8 sm:pl-10 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-rose-500 focus:ring-rose-500 dark:bg-gray-700 dark:text-white text-sm sm:text-base py-1.5 sm:py-2"
                                             value={bidAmount}
                                             onChange={(e) => setBidAmount(e.target.value)}
                                             required
                                         />
                                     </div>
-                                    {bidError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{bidError}</p>}
-                                    {bidSuccess && <p className="mt-2 text-sm text-green-600 dark:text-green-400">{bidSuccess}</p>}
+                                    {bidError && <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-600 dark:text-red-400">{bidError}</p>}
+                                    {bidSuccess && <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-green-600 dark:text-green-400">{bidSuccess}</p>}
                                 </div>
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-rose-600 hover:bg-rose-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                                    className="w-full bg-rose-600 hover:bg-rose-700 text-white font-medium py-1.5 sm:py-2 px-3 sm:px-4 rounded-md transition-colors text-sm sm:text-base"
                                 >
                                     Place Bid
                                 </button>
@@ -394,57 +394,57 @@ const AuctionDetail = () => {
                                 {auction.buyNowPrice && (
                                     <button
                                         type="button"
-                                        className="w-full mt-3 border border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-700 font-medium py-2 px-4 rounded-md transition-colors"
+                                        className="w-full mt-2 sm:mt-3 border border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-700 font-medium py-1.5 sm:py-2 px-3 sm:px-4 rounded-md transition-colors text-sm sm:text-base"
                                     >
                                         Buy Now for ${auction.buyNowPrice.toFixed(2)}
                                     </button>
                                 )}
                             </form>
                         ) : (
-                            <div className="text-center py-4 bg-gray-100 dark:bg-gray-700 rounded-md">
-                                <p className="text-gray-700 dark:text-gray-300 font-medium">This auction has ended</p>
+                            <div className="text-center py-3 sm:py-4 bg-gray-100 dark:bg-gray-700 rounded-md">
+                                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm sm:text-base">This auction has ended</p>
                             </div>
                         )}
 
-                        <div className="flex justify-between mt-6">
+                        <div className="flex justify-between mt-4 sm:mt-6">
                             <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors">
-                                <Heart size={18} className="mr-1" />
-                                <span>Save</span>
+                                <Heart size={16} className="sm:w-[18px] sm:h-[18px] mr-1" />
+                                <span className="text-xs sm:text-sm">Save</span>
                             </button>
                             <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors">
-                                <Share2 size={18} className="mr-1" />
-                                <span>Share</span>
+                                <Share2 size={16} className="sm:w-[18px] sm:h-[18px] mr-1" />
+                                <span className="text-xs sm:text-sm">Share</span>
                             </button>
                             <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors">
-                                <Flag size={18} className="mr-1" />
-                                <span>Report</span>
+                                <Flag size={16} className="sm:w-[18px] sm:h-[18px] mr-1" />
+                                <span className="text-xs sm:text-sm">Report</span>
                             </button>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                        <h2 className="text-lg font-bold mb-4">Auction Details</h2>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
+                        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">Auction Details</h2>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Auction ID</span>
-                                <span className="font-medium">{auction._id.substring(0, 8)}...</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Auction ID</span>
+                                <span className="font-medium text-xs sm:text-sm">{auction._id.substring(0, 8)}...</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Bids</span>
-                                <span className="font-medium">{auction.bids?.length || 0}</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Bids</span>
+                                <span className="font-medium text-xs sm:text-sm">{auction.bids?.length || 0}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Item Condition</span>
-                                <span className="font-medium capitalize">{auction.status || "N/A"}</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Item Condition</span>
+                                <span className="font-medium capitalize text-xs sm:text-sm">{auction.status || "N/A"}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Location</span>
-                                <span className="font-medium">{auction.seller?.address || "N/A"}</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Location</span>
+                                <span className="font-medium text-xs sm:text-sm">{auction.seller?.address || "N/A"}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Shipping</span>
-                                <span className="font-medium">Worldwide</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Shipping</span>
+                                <span className="font-medium text-xs sm:text-sm">Worldwide</span>
                             </div>
                         </div>
                     </div>

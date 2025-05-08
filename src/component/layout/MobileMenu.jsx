@@ -30,8 +30,8 @@ const MobileMenu = ({ setIsMenuOpen }) => {
     }
 
     return (
-        <div className={`md:hidden ${darkMode ? "bg-gray-800" : "bg-white"} border-t border-gray-200 dark:border-gray-700`}>
-            <div className="px-4 py-3">
+        <div className={`md:hidden ${darkMode ? "bg-gray-800" : "bg-white"} border-t border-gray-200 dark:border-gray-700 max-h-[calc(100vh-3.5rem)] overflow-y-auto`}>
+            <div className="px-3 sm:px-4 py-3">
                 <form onSubmit={handleSearch} className="mb-4">
                     <div className="relative">
                         <input
