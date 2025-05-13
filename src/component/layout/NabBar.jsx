@@ -19,7 +19,6 @@ const Navbar = () => {
     const [groupedSubcategories, setGroupedSubcategories] = useState({})
     const [hoveredCategory, setHoveredCategory] = useState(null)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [error, setError] = useState(null)
@@ -33,7 +32,7 @@ const Navbar = () => {
             try {
                 const response = await categoryService.getCategories({
                     page: 1,
-                    limit: 5
+                    limit: 1000 // Set a high limit to fetch all categories
                 })
                 setCategories(response.data.data)
                 setError(null)
@@ -88,9 +87,6 @@ const Navbar = () => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setIsProfileOpen(false)
-            }
-            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
                 setIsNotificationsOpen(false)
             }
         }
@@ -109,7 +105,6 @@ const Navbar = () => {
     const handleLogout = () => {
         logout()
         navigate("/")
-        setIsProfileOpen(false)
     }
 
     return (
@@ -131,7 +126,7 @@ const Navbar = () => {
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex space-x-8">
                         <Link
-                            to="/"
+                            to="/home"
                             className="relative group text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200"
                         >
                             Home
@@ -171,7 +166,7 @@ const Navbar = () => {
                                         categories.map((category) => (
                                             <div key={category._id} className="relative group/subcategory">
                                                 <Link
-                                                    to={`/category/${category._id}`}
+                                                    to={`/auctions?category=${category._id}`}
                                                     className={`flex justify-between items-center px-4 py-2 text-sm transition-colors duration-200 ${darkMode
                                                         ? "hover:bg-gray-700/50 text-gray-300"
                                                         : "hover:bg-gray-100/50 text-gray-600"
@@ -375,9 +370,9 @@ const Navbar = () => {
                         ) : (
                             <Link
                                 to="/login"
-                                className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                                    ? "hover:bg-gray-700/50 text-gray-300"
-                                    : "hover:bg-gray-200/50 text-gray-600"
+                                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${darkMode
+                                    ? "hover:bg-primary-700/50 text-primary-300"
+                                    : "hover:bg-primary-200/50 text-primary-600"
                                     }`}
                             >
                                 Login
