@@ -3,12 +3,11 @@ import { Link } from "react-router-dom"
 import { Clock, Heart } from "lucide-react"
 import { useState, useEffect, useContext } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 
 const AuctionCard = ({ auction }) => {
     const [timeLeft, setTimeLeft] = useState("")
-    const [isFavorite, setIsFavorite] = useState(false)
+    // eslint-disable-next-line no-unused-vars
     const { user } = useContext(AuthContext)
 
     useEffect(() => {
@@ -31,44 +30,9 @@ const AuctionCard = ({ auction }) => {
         return () => clearInterval(interval)
     }, [auction.endDate])
 
-    useEffect(() => {
-        // Check if auction is in user's favorites
-        const checkFavorite = async () => {
-            if (!user) return
 
-            try {
-                const response = await userService.getFavorites()
-                const favorites = response.data.data
-                setIsFavorite(favorites.some((fav) => fav._id === auction._id))
-            } catch (error) {
-                console.error("Error checking favorites:", error)
-            }
-        }
 
-        checkFavorite()
-    }, [user, auction._id])
 
-    const toggleFavorite = async (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-
-        if (!user) {
-            // Redirect to login if not logged in
-            window.location.href = "/login"
-            return
-        }
-
-        try {
-            if (isFavorite) {
-                await userService.removeFromFavorites(auction._id)
-            } else {
-                await userService.addToFavorites(auction._id)
-            }
-            setIsFavorite(!isFavorite)
-        } catch (error) {
-            console.error("Error toggling favorite:", error) 
-        }
-    }
 
     return (
         <Link to={`/auctions/${auction._id}`} className="group">
@@ -79,13 +43,7 @@ const AuctionCard = ({ auction }) => {
                         alt={auction.title}
                         className="w-full h-40 sm:h-48 object-cover"
                     />
-                    <button
-                        onClick={toggleFavorite}
-                        className={`absolute top-2 right-2 p-1.5 sm:p-2 rounded-full ${isFavorite ? "bg-rose-100 text-rose-600" : "bg-gray-100 text-gray-500"} hover:bg-rose-100 hover:text-rose-600 transition-colors`}
-                        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                    >
-                        <Heart size={16} className="sm:w-[18px] sm:h-[18px]" fill={isFavorite ? "currentColor" : "none"} />
-                    </button>
+
 
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 sm:p-3">
                         <div className="flex items-center text-white">

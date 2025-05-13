@@ -4,9 +4,11 @@ import { Link } from "react-router-dom"
 import { useContext } from "react"
 import { ThemeContext } from "../contexts/ThemeContext"
 import { ArrowRight, Sparkles, Award, Shield, Heart } from "lucide-react"
+import { AuthContext } from "../contexts/AuthContext"
 
 const Welcome = () => {
     const { darkMode } = useContext(ThemeContext)
+    const { user } = useContext(AuthContext)
 
     const quotes = [
         {
@@ -118,17 +120,19 @@ const Welcome = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
                     <Link
                         to="/auctions"
-                        className="px-6 py-3 rounded-lg bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 transition-all duration-300 flex items-center space-x-2"
+                        className="px-6 py-3 rounded-lg bg-gradient-to-r from-accent-600 to-accent-500 text-white shadow-lg transform transition-transform duration-300 hover:scale-105 hover:shadow-xl hover:from-accent-500 hover:to-accent-400 flex items-center space-x-2"
                     >
                         <span>Explore Auctions</span>
                         <ArrowRight className="w-5 h-5" />
                     </Link>
-                    <Link
-                        to="/register"
-                        className="px-6 py-3 rounded-lg border border-rose-500 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-300"
-                    >
-                        Join Now
-                    </Link>
+                    {!user && (
+                        <Link
+                            to="/register"
+                            className="px-6 py-3 rounded-lg border border-accent-500 text-accent-600 dark:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-500/10 transition-all duration-300"
+                        >
+                            Join Now
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>
