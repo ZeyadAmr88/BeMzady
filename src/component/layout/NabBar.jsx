@@ -6,8 +6,8 @@ import { Link, useNavigate } from "react-router-dom"
 import { ThemeContext } from "../contexts/ThemeContext"
 import { AuthContext } from "../contexts/AuthContext"
 import { NotificationContext } from "../contexts/NotificationContext"
-import { categoryService } from "../services/api"
-import { Sun, Moon, ShoppingCart, Bell, MessageCircle, User, Menu, X, Search } from "lucide-react"
+import { categoryService, subcategoryService } from "../services/api"
+import { Sun, Moon, ShoppingCart, Bell, MessageCircle, User, Menu, X, Search, ChevronRight } from "lucide-react"
 import NotificationDropdown from "../notifications/NotificationDropdown"
 import MobileMenu from "./MobileMenu"
 
@@ -16,6 +16,8 @@ const Navbar = () => {
     const { user, logout } = useContext(AuthContext)
     const { unreadCount } = useContext(NotificationContext)
     const [categories, setCategories] = useState([])
+    const [groupedSubcategories, setGroupedSubcategories] = useState({})
+    const [hoveredCategory, setHoveredCategory] = useState(null)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
@@ -24,11 +26,15 @@ const Navbar = () => {
     const navigate = useNavigate()
     const profileRef = useRef(null)
     const notificationRef = useRef(null)
+    const categoryTimeoutRef = useRef(null)
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await categoryService.getCategories({ limit: 5 })
+                const response = await categoryService.getCategories({
+                    page: 1,
+                    limit: 5
+                })
                 setCategories(response.data.data)
                 setError(null)
             } catch (error) {
@@ -40,6 +46,44 @@ const Navbar = () => {
 
         fetchCategories()
     }, [])
+
+    // Fetch subcategories when a category is hovered
+    useEffect(() => {
+        if (!hoveredCategory) return;
+
+        const fetchSubcategories = async () => {
+            try {
+                const response = await subcategoryService.getSubcategoriesByCategory(hoveredCategory);
+                const subcategoriesData = response.data.data || [];
+
+                // Group subcategories by their parent category
+                const grouped = subcategoriesData.reduce((acc, subcategory) => {
+                    const categoryId = subcategory.category._id;
+                    const categoryName = subcategory.category.name;
+
+                    if (!acc[categoryId]) {
+                        acc[categoryId] = {
+                            name: categoryName,
+                            subcategories: []
+                        };
+                    }
+
+                    acc[categoryId].subcategories.push({
+                        _id: subcategory._id,
+                        name: subcategory.name,
+                        slug: subcategory.slug
+                    });
+                    return acc;
+                }, {});
+
+                setGroupedSubcategories(grouped);
+            } catch (error) {
+                console.error('Error fetching subcategories:', error);
+            }
+        };
+
+        fetchSubcategories();
+    }, [hoveredCategory]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -100,13 +144,20 @@ const Navbar = () => {
                             Auctions
                             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-600 group-hover:w-full transition-all duration-300"></span>
                         </Link>
+                        <Link
+                            to="/items"
+                            className="relative group text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200"
+                        >
+                            Items
+                            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-600 group-hover:w-full transition-all duration-300"></span>
+                        </Link>
                         <div className="relative group">
                             <button className="relative group text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200">
                                 Categories
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-600 group-hover:w-full transition-all duration-300"></span>
                             </button>
                             <div
-                                className={`absolute left-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
+                                className={`absolute left-0 mt-2 w-64 rounded-lg shadow-lg ${darkMode
                                     ? "bg-gray-800/90 backdrop-blur-sm"
                                     : "bg-white/90 backdrop-blur-sm"
                                     } ring-1 ring-black/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50`}
@@ -118,16 +169,54 @@ const Navbar = () => {
                                         </div>
                                     ) : (
                                         categories.map((category) => (
-                                            <Link
-                                                key={category._id}
-                                                to={`/category/${category._id}`}
-                                                className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                    ? "hover:bg-gray-700/50 text-gray-300"
-                                                    : "hover:bg-gray-100/50 text-gray-600"
-                                                    }`}
-                                            >
-                                                {category.name}
-                                            </Link>
+                                            <div key={category._id} className="relative group/subcategory">
+                                                <Link
+                                                    to={`/category/${category._id}`}
+                                                    className={`flex justify-between items-center px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                                                        ? "hover:bg-gray-700/50 text-gray-300"
+                                                        : "hover:bg-gray-100/50 text-gray-600"
+                                                        }`}
+                                                    onMouseEnter={() => {
+                                                        if (categoryTimeoutRef.current) {
+                                                            clearTimeout(categoryTimeoutRef.current);
+                                                        }
+                                                        categoryTimeoutRef.current = setTimeout(() => {
+                                                            setHoveredCategory(category._id);
+                                                        }, 100);
+                                                    }}
+                                                >
+                                                    <span>{category.name}</span>
+                                                    <ChevronRight size={14} className="text-gray-400" />
+                                                </Link>
+
+                                                {/* Subcategories dropdown */}
+                                                {hoveredCategory === category._id && groupedSubcategories[hoveredCategory] && (
+                                                    <div
+                                                        className={`absolute left-full top-0 w-64 rounded-lg shadow-lg ${darkMode
+                                                            ? "bg-gray-800/90 backdrop-blur-sm"
+                                                            : "bg-white/90 backdrop-blur-sm"
+                                                            } ring-1 ring-black/5 z-50`}
+                                                    >
+                                                        <div className="py-1 px-2">
+                                                            <div className="text-xs font-semibold px-2 py-1 mb-1 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                                                {groupedSubcategories[hoveredCategory].name}
+                                                            </div>
+                                                            {groupedSubcategories[hoveredCategory].subcategories.map((subcategory) => (
+                                                                <Link
+                                                                    key={subcategory._id}
+                                                                    to={`/subcategory/${subcategory.slug}`}
+                                                                    className={`block px-2 py-1 text-sm rounded transition-colors duration-200 ${darkMode
+                                                                        ? "hover:bg-gray-700/50 text-gray-300"
+                                                                        : "hover:bg-gray-100/50 text-gray-600"
+                                                                        }`}
+                                                                >
+                                                                    {subcategory.name}
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))
                                     )}
                                     <Link
@@ -222,9 +311,8 @@ const Navbar = () => {
                                     <MessageCircle size={20} />
                                 </Link>
 
-                                <div className="relative" ref={profileRef}>
+                                <div className="relative group hidden md:block" ref={profileRef}>
                                     <button
-                                        onClick={() => setIsProfileOpen(!isProfileOpen)}
                                         className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
                                             ? "hover:bg-gray-700/50"
                                             : "hover:bg-gray-200/50"
@@ -241,72 +329,61 @@ const Navbar = () => {
                                             <User size={20} className="text-gray-600 dark:text-gray-300" />
                                         )}
                                     </button>
-
-                                    {isProfileOpen && (
-                                        <div
-                                            className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
-                                                ? "bg-gray-800/90 backdrop-blur-sm"
-                                                : "bg-white/90 backdrop-blur-sm"
-                                                } ring-1 ring-black/5 z-50`}
-                                        >
-                                            <div className="py-1" role="menu" aria-orientation="vertical">
-                                                <div className="px-4 py-2 border-b border-gray-200/20 dark:border-gray-700/20">
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.username}</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                                                </div>
-                                                <Link
-                                                    to="/profile"
-                                                    className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                        ? "hover:bg-gray-700/50 text-gray-300"
-                                                        : "hover:bg-gray-100/50 text-gray-600"
-                                                        }`}
-                                                >
-                                                    Profile
-                                                </Link>
-                                                <Link
-                                                    to="/products/add"
-                                                    className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                        ? "hover:bg-gray-700/50 text-gray-300"
-                                                        : "hover:bg-gray-100/50 text-gray-600"
-                                                        }`}
-                                                >
-                                                    Add Product
-                                                </Link>
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                        ? "hover:bg-gray-700/50 text-gray-300"
-                                                        : "hover:bg-gray-100/50 text-gray-600"
-                                                        }`}
-                                                >
-                                                    Sign out
-                                                </button>
+                                    {/* Dropdown on hover */}
+                                    <div
+                                        className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
+                                            ? "bg-gray-800/90 backdrop-blur-sm"
+                                            : "bg-white/90 backdrop-blur-sm"
+                                            } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
+                                    >
+                                        <div className="py-1" role="menu" aria-orientation="vertical">
+                                            <div className="px-4 py-2 border-b border-gray-200/20 dark:border-gray-700/20">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.username}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                                             </div>
+                                            <Link
+                                                to="/profile"
+                                                className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                                                    ? "hover:bg-gray-700/50 text-gray-300"
+                                                    : "hover:bg-gray-100/50 text-gray-600"
+                                                    }`}
+                                            >
+                                                Profile
+                                            </Link>
+                                            <Link
+                                                to="/products/add"
+                                                className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                                                    ? "hover:bg-gray-700/50 text-gray-300"
+                                                    : "hover:bg-gray-100/50 text-gray-600"
+                                                    }`}
+                                            >
+                                                Add Product
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                                                    ? "hover:bg-gray-700/50 text-gray-300"
+                                                    : "hover:bg-gray-100/50 text-gray-600"
+                                                    }`}
+                                            >
+                                                Sign out
+                                            </button>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </>
                         ) : (
-                            <div className="hidden md:flex space-x-2">
-                                <Link
-                                    to="/login"
-                                    className={`px-4 py-2 rounded-lg transition-all duration-200 ${darkMode
-                                        ? "border border-rose-500/50 text-rose-400 hover:bg-rose-500/10"
-                                        : "border border-rose-500 text-rose-600 hover:bg-rose-50"
-                                        }`}
-                                >
-                                    Log in
-                                </Link>
-                                <Link
-                                    to="/register"
-                                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 transition-all duration-200"
-                                >
-                                    Register
-                                </Link>
-                            </div>
+                            <Link
+                                to="/login"
+                                className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
+                                    ? "hover:bg-gray-700/50 text-gray-300"
+                                    : "hover:bg-gray-200/50 text-gray-600"
+                                    }`}
+                            >
+                                Login
+                            </Link>
                         )}
 
-                        {/* Mobile menu button */}
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"

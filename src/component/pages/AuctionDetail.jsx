@@ -17,6 +17,7 @@ const AuctionDetail = () => {
     const [auction, setAuction] = useState(null)
     const [sellerInfo, setSellerInfo] = useState(null)
     const [loading, setLoading] = useState(true)
+    // eslint-disable-next-line no-unused-vars
     const [sellerLoading, setSellerLoading] = useState(false)
     const [error, setError] = useState(null)
     const [bidAmount, setBidAmount] = useState("")
@@ -26,6 +27,7 @@ const AuctionDetail = () => {
     const [activeTab, setActiveTab] = useState("details")
     const [selectedImage, setSelectedImage] = useState(0)
     const [isUserSeller, setIsUserSeller] = useState(false)
+    const [isFavorite, setIsFavorite] = useState(false)
 
     useEffect(() => {
         const fetchAuction = async () => {
@@ -91,6 +93,47 @@ const AuctionDetail = () => {
         return () => clearInterval(interval)
     }, [auction])
 
+    // Check if auction is in user's favorites
+    useEffect(() => {
+        const checkFavorite = async () => {
+            if (!user || !auction) return
+
+            try {
+                const response = await userService.getFavorites()
+                const favorites = response.data.data || []
+                // Check if this auction's item is in favorites
+                setIsFavorite(favorites.some(fav => fav._id === auction._id))
+            } catch (error) {
+                console.error("Error checking favorites:", error)
+            }
+        }
+
+        checkFavorite()
+    }, [user, auction])
+
+    const toggleFavorite = async (e) => {
+        e.preventDefault()
+
+        if (!user) {
+            toast.error("Please log in to add items to favorites")
+            return
+        }
+
+        try {
+            if (isFavorite) {
+                await userService.removeFromFavorites(auction._id)
+                toast.success("Removed from favorites")
+            } else {
+                await userService.addToFavorites(auction._id)
+                toast.success("Added to favorites")
+            }
+            setIsFavorite(!isFavorite)
+        } catch (error) {
+            console.error("Error toggling favorite:", error)
+            toast.error("Failed to update favorites")
+        }
+    }
+
     const handleBid = async (e) => {
         e.preventDefault()
 
@@ -105,13 +148,27 @@ const AuctionDetail = () => {
             return
         }
 
-        const bidValue = Number.parseFloat(bidAmount)
+        let bidValue = Number.parseFloat(bidAmount)
         const currentPrice = auction.currentPrice || auction.startPrice
         const minIncrement = auction.minimumBidIncrement || 1
+        const minBidAmount = currentPrice + minIncrement
 
-        if (bidValue < currentPrice + minIncrement) {
-            setBidError(`Bid must be at least $${(currentPrice + minIncrement).toFixed(2)}`)
+        // Check if bid is at least the minimum required amount
+        if (bidValue < minBidAmount) {
+            setBidError(`Bid must be at least $${minBidAmount.toFixed(2)}`)
             return
+        }
+
+        // Calculate how many increments above the current price
+        const incrementsAboveCurrentPrice = Math.floor((bidValue - currentPrice) / minIncrement)
+
+        // If not an exact multiple of the increment, adjust to the next valid increment
+        if ((bidValue - currentPrice) % minIncrement !== 0) {
+            const adjustedBidValue = currentPrice + (incrementsAboveCurrentPrice + 1) * minIncrement
+            bidValue = adjustedBidValue
+            // Update the bid amount in the input field
+            setBidAmount(bidValue.toString())
+            toast.info(`Your bid has been adjusted to $${bidValue.toFixed(2)} to match the minimum increment requirement`)
         }
 
         setBidError("")
@@ -380,6 +437,9 @@ const AuctionDetail = () => {
                                             required
                                         />
                                     </div>
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        Bids will be automatically adjusted to match the minimum increment requirement.
+                                    </p>
                                     {bidError && <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-600 dark:text-red-400">{bidError}</p>}
                                     {bidSuccess && <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-green-600 dark:text-green-400">{bidSuccess}</p>}
                                 </div>
@@ -407,9 +467,16 @@ const AuctionDetail = () => {
                         )}
 
                         <div className="flex justify-between mt-4 sm:mt-6">
-                            <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors">
-                                <Heart size={16} className="sm:w-[18px] sm:h-[18px] mr-1" />
-                                <span className="text-xs sm:text-sm">Save</span>
+                            <button
+                                onClick={toggleFavorite}
+                                className={`flex items-center ${isFavorite ? 'text-rose-600' : 'text-gray-500 dark:text-gray-400'} hover:text-rose-600 dark:hover:text-rose-500 transition-colors`}
+                            >
+                                <Heart
+                                    size={16}
+                                    className="sm:w-[18px] sm:h-[18px] mr-1"
+                                    fill={isFavorite ? "currentColor" : "none"}
+                                />
+                                <span className="text-xs sm:text-sm">{isFavorite ? 'Saved' : 'Save'}</span>
                             </button>
                             <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors">
                                 <Share2 size={16} className="sm:w-[18px] sm:h-[18px] mr-1" />

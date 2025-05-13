@@ -119,7 +119,7 @@ const ItemReviews = ({ itemId }) => {
                         <div className="flex">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button
-                                    key={star}
+                                    key={`rating-star-${star}`}
                                     type="button"
                                     onClick={() => setRating(star)}
                                     className="text-2xl focus:outline-none"
@@ -190,7 +190,7 @@ const ItemReviews = ({ itemId }) => {
                     <div className="flex mb-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
-                                key={star}
+                                key={`user-review-star-${star}`}
                                 fill={star <= userReview.rating ? "currentColor" : "none"}
                                 className={star <= userReview.rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
                                 size={18}
@@ -233,7 +233,7 @@ const ItemReviews = ({ itemId }) => {
                                         <div className="flex">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <Star
-                                                    key={star}
+                                                    key={`review-star-${review._id}-${star}`}
                                                     fill={star <= review.rating ? "currentColor" : "none"}
                                                     className={star <= review.rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
                                                     size={16}

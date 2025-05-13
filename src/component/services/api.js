@@ -85,11 +85,44 @@ export const categoryService = {
     getCategories: (params) => api.get("/categories", { params }),
     getCategoryById: (id) => api.get(`/categories/${id}`),
     getSubcategoriesByCategory: (categoryId) => api.get(`/categories/${categoryId}/Subcategories`),
+    getCategoryWithAuctions: (id) => api.get(`/categories/${id}/auctions`),
+}
+
+export const subcategoryService = {
+    // Public endpoints
+    getSubcategories: (params) => api.get("/subcategories", { params }),
+    getSubcategoryById: (id) => api.get(`/subcategories/${id}`),
+    getSubcategoriesByCategory: (categoryId) => api.get(`/subcategories/category/${categoryId}`),
+
+    // Admin-only endpoints (protected)
+    createSubcategory: (data) => api.post("/subcategories", data, {
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+    }),
+    updateSubcategory: (id, data) => api.put(`/subcategories/${id}`, data, {
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+    }),
+    deleteSubcategory: (id) => api.delete(`/subcategories/${id}`, {
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+    })
 }
 
 export const itemService = {
     getItems: (params) => api.get("/items", { params }),
     getItemById: (id) => api.get(`/items/${id}`),
+    createItem: (formData) =>
+        api.post("/items", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            timeout: 60000, // Increase timeout to 60 seconds for file uploads
+        }),
     getItemReviews: (itemId) => api.get(`/items/${itemId}/reviews`),
     addReview: (itemId, review) => api.post(`/items/${itemId}/reviews`, review),
     updateReview: (itemId, review) => api.put(`/items/${itemId}/reviews`, review),
@@ -120,10 +153,39 @@ export const userService = {
 }
 
 export const cartService = {
-    getCart: () => api.get("/cart"),
-    addToCart: (itemId, quantity) => api.post("/cart/add", { itemId, quantity }),
-    removeFromCart: (itemId) => api.delete("/cart/remove", { data: { itemId } }),
-    clearCart: () => api.delete("/cart/clear"),
+    getCart: () => {
+        const userId = localStorage.getItem("user_id");
+        if (!userId) {
+            return Promise.reject(new Error("User not authenticated"));
+        }
+        return api.get("/cart");
+    },
+    addToCart: (itemId, quantity) => {
+        const userId = localStorage.getItem("user_id");
+        if (!userId) {
+            return Promise.reject(new Error("User not authenticated"));
+        }
+        // Ensure quantity is a valid number
+        const validQuantity = parseInt(quantity) || 1;
+        return api.post("/cart/add", {
+            itemId,
+            quantity: validQuantity
+        });
+    },
+    removeFromCart: (itemId) => {
+        const userId = localStorage.getItem("user_id");
+        if (!userId) {
+            return Promise.reject(new Error("User not authenticated"));
+        }
+        return api.delete("/cart/remove", { data: { itemId } });
+    },
+    clearCart: () => {
+        const userId = localStorage.getItem("user_id");
+        if (!userId) {
+            return Promise.reject(new Error("User not authenticated"));
+        }
+        return api.delete("/cart/clear");
+    },
 }
 
 export const messageService = {
