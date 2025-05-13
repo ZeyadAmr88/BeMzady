@@ -1,11 +1,14 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
 import { cartService } from "../services/api"
-import { Trash2, Plus, Minus, ShoppingCart, ArrowRight, AlertCircle } from 'lucide-react'
+import { ShoppingCart, ArrowRight, AlertCircle, Loader } from 'lucide-react'
+import CartItem from "../cart/CartItem"
+import { AuthContext } from "../contexts/AuthContext"
 
 const Cart = () => {
+    const { user } = useContext(AuthContext)
     const [cartItems, setCartItems] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -18,29 +21,80 @@ const Cart = () => {
     })
 
     useEffect(() => {
-        fetchCart()
-    }, [])
+        if (user) {
+            fetchCart()
+        }
+    }, [user])
 
     useEffect(() => {
         // Calculate cart summary whenever cartItems changes
-        const subtotal = Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + (item.price * item.quantity), 0) : 0
-        const shipping = subtotal > 0 ? 10 : 0
-        const tax = subtotal * 0.05 // 5% tax
-        const total = subtotal + shipping + tax
+        let subtotal = 0;
+
+        if (Array.isArray(cartItems) && cartItems.length > 0) {
+            subtotal = cartItems.reduce((total, item) => {
+                // Handle the nested item structure
+                const itemData = item.item || {}
+                // Ensure price is a valid number
+                const price = parseFloat(itemData.price || 0);
+                if (isNaN(price)) {
+                    console.warn("Invalid price for item:", itemData);
+                    return total;
+                }
+
+                // Ensure quantity is a valid number
+                const quantity = parseInt(item.quantity) || 1;
+                if (isNaN(quantity)) {
+                    console.warn("Invalid quantity for item:", item);
+                    return total;
+                }
+
+                const itemTotal = price * quantity;
+                console.log(`Item ${itemData.title}: Price=${price}, Quantity=${quantity}, Total=${itemTotal}`);
+                return total + itemTotal;
+            }, 0);
+        }
+
+        // Ensure all values are valid numbers
+        const validSubtotal = isNaN(subtotal) ? 0 : subtotal;
+        const shipping = validSubtotal > 0 ? 10 : 0;
+        const tax = validSubtotal * 0.05; // 5% tax
+        const total = validSubtotal + shipping + tax;
+
+        console.log("Cart Summary:", { subtotal: validSubtotal, shipping, tax, total });
 
         setCartSummary({
-            subtotal,
+            subtotal: validSubtotal,
             shipping,
             tax,
             total
-        })
+        });
     }, [cartItems])
 
     const fetchCart = async () => {
         try {
             setLoading(true)
             const response = await cartService.getCart()
-            setCartItems(Array.isArray(response.data.data) ? response.data.data : [])
+            console.log("Cart response:", response.data)
+
+            // Handle the cart data structure
+            let items = []
+            if (response.data && response.data.data) {
+                // Check if the response has an items array (new structure)
+                if (response.data.data.items && Array.isArray(response.data.data.items)) {
+                    items = response.data.data.items
+                    console.log("Cart items from nested structure:", items)
+                } else if (Array.isArray(response.data.data)) {
+                    // Fallback to old structure
+                    items = response.data.data
+                }
+
+                // Log the first item for debugging
+                if (items.length > 0) {
+                    console.log("First cart item:", items[0])
+                }
+            }
+
+            setCartItems(items)
             setError(null)
         } catch (error) {
             console.error("Error fetching cart:", error)
@@ -57,25 +111,53 @@ const Cart = () => {
         try {
             setUpdating(true)
 
+            // Find the cart item to get the actual item ID
+            const cartItem = cartItems.find(item =>
+                (item._id === itemId) || (item.item && item.item._id === itemId)
+            );
+
+            if (!cartItem) {
+                console.error("Item not found in cart:", itemId);
+                setError("Item not found in cart");
+                setUpdating(false);
+                return;
+            }
+
+            // Get the actual item ID from the nested structure
+            const actualItemId = cartItem.item?._id || itemId;
+
+            // Ensure quantity is a valid number
+            const validQuantity = parseInt(newQuantity) || 0;
+            console.log(`Updating item ${actualItemId} quantity to ${validQuantity}`);
+
             // Remove item if quantity is 0
-            if (newQuantity === 0) {
-                await cartService.removeFromCart(itemId)
+            if (validQuantity <= 0) {
+                await cartService.removeFromCart(actualItemId);
+                console.log(`Removed item ${actualItemId} from cart`);
             } else {
                 // First remove the item, then add with new quantity
-                await cartService.removeFromCart(itemId)
-                await cartService.addToCart(itemId, newQuantity)
+                await cartService.removeFromCart(actualItemId);
+                console.log(`Removed item ${actualItemId} from cart before updating`);
+
+                await cartService.addToCart(actualItemId, validQuantity);
+                console.log(`Added item ${actualItemId} with quantity ${validQuantity}`);
             }
 
             // Update local state
-            setCartItems(prevItems =>
-                newQuantity === 0
-                    ? prevItems.filter(item => item._id !== itemId)
-                    : prevItems.map(item =>
-                        item._id === itemId
-                            ? { ...item, quantity: newQuantity }
-                            : item
-                    )
-            )
+            setCartItems(prevItems => {
+                if (validQuantity <= 0) {
+                    return prevItems.filter(item =>
+                        (item._id !== itemId) && (item.item?._id !== itemId)
+                    );
+                } else {
+                    return prevItems.map(item => {
+                        if (item._id === itemId || (item.item && item.item._id === itemId)) {
+                            return { ...item, quantity: validQuantity };
+                        }
+                        return item;
+                    });
+                }
+            });
         } catch (error) {
             console.error("Error updating cart:", error)
             setError("Failed to update cart. Please try again.")
@@ -87,10 +169,28 @@ const Cart = () => {
     const handleRemoveItem = async (itemId) => {
         try {
             setUpdating(true)
-            await cartService.removeFromCart(itemId)
+
+            // Find the cart item to get the actual item ID
+            const cartItem = cartItems.find(item =>
+                (item._id === itemId) || (item.item && item.item._id === itemId)
+            );
+
+            if (!cartItem) {
+                console.error("Item not found in cart:", itemId);
+                setError("Item not found in cart");
+                setUpdating(false);
+                return;
+            }
+
+            // Get the actual item ID from the nested structure
+            const actualItemId = cartItem.item?._id || itemId;
+
+            await cartService.removeFromCart(actualItemId)
 
             // Update local state
-            setCartItems(prevItems => prevItems.filter(item => item._id !== itemId))
+            setCartItems(prevItems => prevItems.filter(item =>
+                (item._id !== itemId) && (item.item?._id !== itemId)
+            ))
         } catch (error) {
             console.error("Error removing item from cart:", error)
             setError("Failed to remove item. Please try again.")
@@ -115,7 +215,26 @@ const Cart = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-600"></div>
+                <Loader size={32} className="animate-spin text-rose-600" />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="text-center py-12">
+                <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
+                <h2 className="text-xl font-medium mb-2">Please log in to view your cart</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    You need to be logged in to access your shopping cart.
+                </p>
+                <Link
+                    to="/login"
+                    className="inline-flex items-center px-6 py-3 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors"
+                >
+                    <span>Log In</span>
+                    <ArrowRight size={20} className="ml-2" />
+                </Link>
             </div>
         )
     }
@@ -139,10 +258,10 @@ const Cart = () => {
                         Looks like you haven't added any items to your cart yet.
                     </p>
                     <Link
-                        to="/auctions"
+                        to="/items"
                         className="inline-flex items-center px-6 py-3 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors"
                     >
-                        <span>Browse Auctions</span>
+                        <span>Browse Items</span>
                         <ArrowRight size={20} className="ml-2" />
                     </Link>
                 </div>
@@ -164,50 +283,13 @@ const Cart = () => {
 
                             <div className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {cartItems.map((item) => (
-                                    <div key={item._id} className="p-4">
-                                        <div className="flex items-start">
-                                            <img
-                                                src={item.image || "/placeholder.svg"}
-                                                alt={item.name}
-                                                className="w-20 h-20 rounded-md object-cover"
-                                            />
-                                            <div className="ml-4 flex-1">
-                                                <h3 className="font-medium">{item.name}</h3>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {item.description}
-                                                </p>
-                                                <div className="mt-2 flex items-center justify-between">
-                                                    <div className="flex items-center">
-                                                        <button
-                                                            onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
-                                                            className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            disabled={updating}
-                                                        >
-                                                            <Minus size={16} />
-                                                        </button>
-                                                        <span className="mx-2">{item.quantity}</span>
-                                                        <button
-                                                            onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
-                                                            className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            disabled={updating}
-                                                        >
-                                                            <Plus size={16} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
-                                                        <button
-                                                            onClick={() => handleRemoveItem(item._id)}
-                                                            className="ml-4 p-1 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            disabled={updating}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <CartItem
+                                        key={item._id || item.item}
+                                        item={item}
+                                        onUpdateQuantity={handleUpdateQuantity}
+                                        onRemove={handleRemoveItem}
+                                        disabled={updating}
+                                    />
                                 ))}
                             </div>
                         </div>

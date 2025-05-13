@@ -34,10 +34,13 @@ const Home = () => {
                     status: "active",
                 })
 
-                // Fetch categories
+                // Fetch categories with pagination
                 const categoriesResponse = await categoryService.getCategories({
+                    page: 1,
                     limit: 6,
                 })
+
+                console.log("Home categories response:", categoriesResponse.data)
 
                 setFeaturedAuctions(featuredResponse.data.data)
                 setEndingSoonAuctions(endingSoonResponse.data.data)

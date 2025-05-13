@@ -1,17 +1,75 @@
 "use client"
 
 import React from "react"
-import { useContext, useState } from "react"
+import { useContext, useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthContext } from "../contexts/AuthContext"
 import { ThemeContext } from "../contexts/ThemeContext"
-import { Search, User, ShoppingCart, Bell, MessageCircle, LogOut } from "lucide-react"
+import { categoryService, subcategoryService } from "../services/api"
+import { Search, User, ShoppingCart, Bell, MessageCircle, LogOut, ChevronDown, ChevronRight } from "lucide-react"
 
 const MobileMenu = ({ setIsMenuOpen }) => {
     const { user, logout } = useContext(AuthContext)
     const { darkMode } = useContext(ThemeContext)
     const [searchQuery, setSearchQuery] = useState("")
+    const [categories, setCategories] = useState([])
+    const [expandedCategory, setExpandedCategory] = useState(null)
+    const [subcategories, setSubcategories] = useState({})
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await categoryService.getCategories({
+                    page: 1,
+                    limit: 5
+                })
+                setCategories(response.data.data || [])
+            } catch (error) {
+                console.error("Error fetching categories:", error)
+            }
+        }
+
+        fetchCategories()
+    }, [])
+
+    useEffect(() => {
+        if (!expandedCategory) return
+
+        const fetchSubcategories = async () => {
+            setLoading(true)
+            try {
+                const response = await subcategoryService.getSubcategoriesByCategory(expandedCategory)
+                const subcategoriesData = response.data.data || []
+
+                // Group subcategories by their parent category
+                const grouped = subcategoriesData.reduce((acc, subcategory) => {
+                    // Extract category information from the subcategory
+                    const categoryId = subcategory.category._id
+                    const categoryName = subcategory.category.name
+
+                    if (!acc[categoryId]) {
+                        acc[categoryId] = {
+                            name: categoryName,
+                            subcategories: []
+                        }
+                    }
+
+                    acc[categoryId].subcategories.push(subcategory)
+                    return acc
+                }, {})
+
+                setSubcategories(grouped)
+            } catch (error) {
+                console.error('Error fetching subcategories:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchSubcategories()
+    }, [expandedCategory])
 
     const handleSearch = (e) => {
         e.preventDefault()
@@ -54,9 +112,67 @@ const MobileMenu = ({ setIsMenuOpen }) => {
                     <Link to="/auctions" className="block py-2 hover:text-rose-600 transition-colors" onClick={closeMenu}>
                         Auctions
                     </Link>
-                    <Link to="/categories" className="block py-2 hover:text-rose-600 transition-colors" onClick={closeMenu}>
-                        Categories
+                    <Link to="/items" className="block py-2 hover:text-rose-600 transition-colors" onClick={closeMenu}>
+                        Items
                     </Link>
+                    <div>
+                        <Link to="/categories" className="block py-2 hover:text-rose-600 transition-colors">
+                            Categories
+                        </Link>
+                        <div className="pl-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700">
+                            {categories.map((category) => (
+                                <div key={category._id} className="py-1">
+                                    <div
+                                        className="flex items-center justify-between cursor-pointer hover:text-rose-600 transition-colors"
+                                        onClick={() => setExpandedCategory(expandedCategory === category._id ? null : category._id)}
+                                    >
+                                        <Link
+                                            to={`/category/${category._id}`}
+                                            className="flex-grow"
+                                            onClick={closeMenu}
+                                        >
+                                            {category.name}
+                                        </Link>
+                                        <button className="p-1">
+                                            {expandedCategory === category._id ?
+                                                <ChevronDown size={16} /> :
+                                                <ChevronRight size={16} />}
+                                        </button>
+                                    </div>
+
+                                    {expandedCategory === category._id && (
+                                        <div className="pl-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700">
+                                            {loading ? (
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 py-1">Loading...</div>
+                                            ) : Object.keys(subcategories).length > 0 ? (
+                                                Object.keys(subcategories).map((categoryId) => (
+                                                    <div key={categoryId} className="py-1">
+                                                        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 py-1">
+                                                            {subcategories[categoryId].name}
+                                                        </div>
+                                                        <div className="pl-2 space-y-1">
+                                                            {subcategories[categoryId].subcategories.map((subcategory) => (
+                                                                <Link
+                                                                    key={subcategory._id}
+                                                                    to={`/category/${subcategory._id}`}
+                                                                    className="block text-sm py-1 hover:text-rose-600 transition-colors"
+                                                                    onClick={closeMenu}
+                                                                >
+                                                                    {subcategory.name}
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 py-1">No subcategories found</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                     {user ? (
                         <>

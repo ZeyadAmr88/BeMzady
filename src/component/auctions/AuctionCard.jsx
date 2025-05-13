@@ -39,7 +39,7 @@ const AuctionCard = ({ auction }) => {
             try {
                 const response = await userService.getFavorites()
                 const favorites = response.data.data
-                setIsFavorite(favorites.some((fav) => fav._id === auction.item._id))
+                setIsFavorite(favorites.some((fav) => fav._id === auction._id))
             } catch (error) {
                 console.error("Error checking favorites:", error)
             }
@@ -60,13 +60,13 @@ const AuctionCard = ({ auction }) => {
 
         try {
             if (isFavorite) {
-                await userService.removeFromFavorites(auction.item._id)
+                await userService.removeFromFavorites(auction._id)
             } else {
-                await userService.addToFavorites(auction.item._id)
+                await userService.addToFavorites(auction._id)
             }
             setIsFavorite(!isFavorite)
         } catch (error) {
-            console.error("Error toggling favorite:", error)
+            console.error("Error toggling favorite:", error) 
         }
     }
 
