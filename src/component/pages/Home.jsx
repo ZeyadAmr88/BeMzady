@@ -66,7 +66,7 @@ const Home = () => {
     return (
         <div>
             <HeroSection />
-
+            <HowItWorks />
             {/* Featured Auctions */}
             <section className="py-12">
                 <div className="container mx-auto px-4">
@@ -127,7 +127,7 @@ const Home = () => {
                 </div>
             </section>
 
-            <HowItWorks />
+            
             <Testimonials />
         </div>
     )
