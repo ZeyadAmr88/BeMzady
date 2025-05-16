@@ -8,7 +8,7 @@ import { messageService } from "../services/api"
 import { Search, MessageSquare, Trash2, User, Clock, AlertCircle, PlusCircle } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import NewMessageModal from "../messages/NewMessageModal"
-import { ErrorBoundary } from "react-error-boundary"
+import ErrorBoundary from "../common/ErrorBoundary"
 
 const Messages = () => {
   const { user } = useContext(AuthContext)
@@ -102,24 +102,24 @@ const Messages = () => {
 
   const filteredConversations = Array.isArray(conversations)
     ? conversations.filter((conversation) => {
-        // Skip invalid conversation objects
-        if (!conversation || !conversation.participants || !Array.isArray(conversation.participants)) {
-          console.warn("Invalid conversation format:", conversation)
-          return false
-        }
+      // Skip invalid conversation objects
+      if (!conversation || !conversation.participants || !Array.isArray(conversation.participants)) {
+        console.warn("Invalid conversation format:", conversation)
+        return false
+      }
 
-        // Get the other user in the conversation
-        const otherUser = conversation.participants.find((participant) => participant && participant._id !== user?._id)
+      // Get the other user in the conversation
+      const otherUser = conversation.participants.find((participant) => participant && participant._id !== user?._id)
 
-        // If no other user found or they don't have a username, skip
-        if (!otherUser || !otherUser.username) {
-          console.warn("No other user found in conversation:", conversation)
-          return false
-        }
+      // If no other user found or they don't have a username, skip
+      if (!otherUser || !otherUser.username) {
+        console.warn("No other user found in conversation:", conversation)
+        return false
+      }
 
-        // Filter by username if search query provided
-        return searchQuery ? otherUser.username.toLowerCase().includes(searchQuery.toLowerCase()) : true
-      })
+      // Filter by username if search query provided
+      return searchQuery ? otherUser.username.toLowerCase().includes(searchQuery.toLowerCase()) : true
+    })
     : []
 
   const handleSelectConversation = (conversation) => {
@@ -135,16 +135,7 @@ const Messages = () => {
   }
 
   return (
-    <ErrorBoundary
-      fallback={
-        <div className="container mx-auto px-4 py-8">
-          <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
-            <h2 className="text-lg font-medium mb-2">Something went wrong</h2>
-            <p>There was an error loading your messages. Please refresh the page and try again.</p>
-          </div>
-        </div>
-      }
-    >
+    <ErrorBoundary>
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Messages</h1>
@@ -199,9 +190,8 @@ const Messages = () => {
                   <div
                     key={conversation._id}
                     onClick={() => handleSelectConversation(conversation)}
-                    className={`p-4 flex items-start hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
-                      isUnread ? "bg-rose-50 dark:bg-rose-900/10" : ""
-                    }`}
+                    className={`p-4 flex items-start hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${isUnread ? "bg-rose-50 dark:bg-rose-900/10" : ""
+                      }`}
                   >
                     <div className="relative mr-4">
                       {otherUser.user_picture ? (

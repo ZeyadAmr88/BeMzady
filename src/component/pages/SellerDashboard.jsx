@@ -99,8 +99,8 @@ const SellerDashboard = () => {
         }
     }
 
-    const handleItemClick = (itemSlug) => {
-        navigate(`/items/${itemSlug}`)
+    const handleItemClick = (_id) => {
+        navigate(`/items/${_id}`)
     }
 
     if (loading) {
@@ -179,7 +179,7 @@ const SellerDashboard = () => {
                         {items.map((item) => (
                             <div
                                 key={item._id}
-                                onClick={() => handleItemClick(item.slug)}
+                                onClick={() => handleItemClick(item._id)}
                                 className="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 dark:border-gray-600"
                             >
                                 <div className="relative">
@@ -196,7 +196,6 @@ const SellerDashboard = () => {
                                 </div>
                                 <div className="p-4">
                                     <h3 className="font-medium text-lg mb-2">{item.title}</h3>
-                                    {console.log(item,"itemss")}
                                     <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
                                         {item.description}
                                     </p>

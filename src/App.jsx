@@ -13,30 +13,30 @@ import Register from "./component/pages/Register"
 import AuctionDetail from "./component/pages/AuctionDetail"
 import Auctions from "./component/pages/Auctions"
 import Profile from "./component/pages/Profile"
+import ProfileOverview from "./component/pages/ProfileOverview"
+import ProfileBids from "./component/pages/ProfileBids"
+import ProfileFavorites from "./component/pages/ProfileFavourites"
+import Cart from "./component/pages/Cart"
+import Messages from "./component/pages/Messages"
+import Conversation from "./component/pages/Conversation"
+import ProtectedRoute from "./component/auth/ProtectedRoute"
+import ForgotPassword from "./component/pages/ForgetPassword"
+import ResetPassword from "./component/pages/ResetPassword"
+import CategoryPage from "./component/pages/CategoryPage"
+import Categories from "./component/pages/Categories"
+import CreateAuction from "./component/pages/CreateAuction"
+import AddProduct from "./component/AddProduct"
+import Items from "./component/pages/Items"
+import ItemDetail from "./component/pages/ItemDetail"
+import ProfileCompletedAuctions from "./component/pages/ProfileCompletedAuctions"
+import OrderSuccess from "./component/pages/OrderSuccess"
+import OrderFail from "./component/pages/OrderFail"
+import Notifications from "./component/pages/Notifications"
+import SellerDashboard from "./component/pages/SellerDashboard"
+import Settings from "./component/pages/Settings"
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
-import ProfileBids from "./component/pages/ProfileBids";
-import ProfileFavorites from "./component/pages/ProfileFavourites";
-import Cart from "./component/pages/Cart";
-import Messages from "./component/pages/Messages";
-import Conversation from "./component/pages/Conversation";
-import ProtectedRoute from "./component/auth/ProtectedRoute";
-import ForgotPassword from "./component/pages/ForgetPassword";
-import ResetPassword from "./component/pages/ResetPassword";
-import CategoryPage from "./component/pages/CategoryPage";
-import Categories from "./component/pages/Categories";
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
 // import Subcategories from "./component/pages/Subcategories"
-import CreateAuction from "./component/pages/CreateAuction";
-import AddProduct from "./component/AddProduct";
-import Items from "./component/pages/Items";
-import ItemDetail from "./component/pages/ItemDetail";
-import ProfileCompletedAuctions from "./component/pages/ProfileCompletedAuctions";
-import OrderSuccess from "./component/pages/OrderSuccess";
-import OrderFail from "./component/pages/OrderFail";
-import Notifications from "./component/pages/Notifications";
-import ProfileOverview from "./component/pages/ProfileOverview";
-import SellerDashboard from "./component/pages/SellerDashboard";
-import Settings from "./component/pages/Settings";
 
 function App() {
   return (
