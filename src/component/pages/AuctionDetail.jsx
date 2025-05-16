@@ -23,6 +23,7 @@ import BidHistory from "../auctions/BidHistory";
 import ItemReviews from "../items/ItemReviews";
 import RelatedAuctions from "../auctions/RelatedAuctions";
 import { toast } from "react-hot-toast";
+import ContactButton from "../messages/ContactButton";
 
 const AuctionDetail = () => {
   const { id } = useParams();
@@ -364,69 +365,67 @@ const AuctionDetail = () => {
                   </div>
 
                   <h3 className="text-lg font-bold mb-3">Seller Information</h3>
-                  <div className="flex items-center mb-6">
-                    {sellerInfo?.profilePicture ? (
-                      <img
-                        src={sellerInfo.profilePicture || "/placeholder.svg"}
-                        alt={sellerInfo.username}
-                        className="w-10 h-10 rounded-full mr-3"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mr-3">
-                        <User
-                          size={20}
-                          className="text-gray-500 dark:text-gray-400"
-                        />
+                  <div className="p-4 mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                    {sellerInfo ? (
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start">
+                          <div className="mr-3">
+                            {sellerInfo.profilePicture ? (
+                              <img
+                                src={sellerInfo.profilePicture}
+                                alt={sellerInfo.username}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                                <User
+                                  size={18}
+                                  className="text-gray-500 dark:text-gray-400"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">
+                              {sellerInfo.username}
+                            </h4>
+                            <div className="flex flex-col space-y-1 text-sm text-gray-500 dark:text-gray-400">
+                              {sellerInfo.email && (
+                                <span className="flex items-center">
+                                  <Mail size={14} className="mr-1" />{" "}
+                                  {sellerInfo.email}
+                                </span>
+                              )}
+                              {sellerInfo.phone && (
+                                <span className="flex items-center">
+                                  <Phone size={14} className="mr-1" />{" "}
+                                  {sellerInfo.phone}
+                                </span>
+                              )}
+                              {sellerInfo.address && (
+                                <span className="flex items-center">
+                                  <MapPin size={14} className="mr-1" />{" "}
+                                  {sellerInfo.address}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Add Contact button */}
+                        {!isUserSeller && sellerInfo._id && (
+                          <ContactButton
+                            recipientId={sellerInfo._id}
+                            buttonText="Contact Seller"
+                            className="px-3 py-1.5 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded flex items-center"
+                          />
+                        )}
                       </div>
-                    )}
-                    <div>
-                      <p className="font-medium">
-                        {sellerInfo?.username || "Anonymous"}
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Seller information unavailable
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Member since{" "}
-                        {sellerInfo?.createdAt
-                          ? format(new Date(sellerInfo.createdAt), "MMMM yyyy")
-                          : "N/A"}
-                      </p>
-                    </div>
-
-                    {user && !isUserSeller && (
-                      <button className="ml-auto flex items-center text-rose-600 hover:text-rose-700 transition-colors">
-                        <MessageCircle size={18} className="mr-1" />
-                        <span>Contact</span>
-                      </button>
                     )}
                   </div>
-
-                  {sellerInfo && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-                      {sellerInfo.email && (
-                        <div className="flex items-center">
-                          <Mail className="text-rose-600 mr-2" size={16} />
-                          <span className="text-gray-700 dark:text-gray-300 text-sm">
-                            {sellerInfo.email}
-                          </span>
-                        </div>
-                      )}
-                      {sellerInfo.phone && (
-                        <div className="flex items-center">
-                          <Phone className="text-rose-600 mr-2" size={16} />
-                          <span className="text-gray-700 dark:text-gray-300 text-sm">
-                            {sellerInfo.phone}
-                          </span>
-                        </div>
-                      )}
-                      {sellerInfo.address && (
-                        <div className="flex items-center col-span-2">
-                          <MapPin className="text-rose-600 mr-2" size={16} />
-                          <span className="text-gray-700 dark:text-gray-300 text-sm">
-                            {sellerInfo.address}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
 

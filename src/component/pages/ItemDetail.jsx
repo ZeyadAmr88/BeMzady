@@ -3,7 +3,14 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { itemService, userService, cartService } from "../services/api";
 import { AuthContext } from "../contexts/AuthContext";
 import { ThemeContext } from "../contexts/ThemeContext";
-import { Heart, ShoppingCart, ArrowLeft, User, Loader, Share2 } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  ArrowLeft,
+  User,
+  Loader,
+  Share2,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import ItemReviews from "../items/ItemReviews";
 
@@ -44,7 +51,7 @@ const ItemDetail = () => {
           try {
             const favoritesResponse = await userService.getFavorites();
             const favorites = favoritesResponse.data.data || [];
-            setIsFavorite(favorites.some(fav => fav._id === id));
+            setIsFavorite(favorites.some((fav) => fav._id === id));
           } catch (favError) {
             console.error("Error checking favorites:", favError);
           }
@@ -77,7 +84,9 @@ const ItemDetail = () => {
       setIsFavorite(!isFavorite);
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      toast.error(error.response?.data?.message || "Failed to update favorites");
+      toast.error(
+        error.response?.data?.message || "Failed to update favorites"
+      );
     }
   };
 
@@ -93,7 +102,9 @@ const ItemDetail = () => {
       toast.success("Item added to cart");
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error(error.response?.data?.message || "Failed to add item to cart");
+      toast.error(
+        error.response?.data?.message || "Failed to add item to cart"
+      );
     } finally {
       setAddingToCart(false);
     }
@@ -156,7 +167,11 @@ const ItemDetail = () => {
         <div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-4">
             <img
-              src={item.item_pictures?.[selectedImage] || item.item_cover || "/placeholder.svg"}
+              src={
+                item.item_pictures?.[selectedImage] ||
+                item.item_cover ||
+                "/placeholder.svg"
+              }
               alt={item.title}
               className="w-full h-96 object-contain"
             />
@@ -200,9 +215,14 @@ const ItemDetail = () => {
                       ? "bg-rose-100 text-rose-600"
                       : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
                   } hover:bg-rose-100 hover:text-rose-600`}
-                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  aria-label={
+                    isFavorite ? "Remove from favorites" : "Add to favorites"
+                  }
                 >
-                  <Heart size={20} className={isFavorite ? "fill-current" : ""} />
+                  <Heart
+                    size={20}
+                    className={isFavorite ? "fill-current" : ""}
+                  />
                 </button>
                 <button
                   onClick={shareItem}
@@ -247,13 +267,16 @@ const ItemDetail = () => {
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
-                      <User size={20} className="text-gray-500 dark:text-gray-400" />
+                      <User
+                        size={20}
+                        className="text-gray-500 dark:text-gray-400"
+                      />
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{owner.username}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Member since {new Date(owner.createdAt).toLocaleDateString()}
+                      {owner.location || "Location not specified"}
                     </p>
                   </div>
                 </div>
@@ -278,7 +301,9 @@ const ItemDetail = () => {
                       id="quantity"
                       min="1"
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                      onChange={(e) =>
+                        setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                      }
                       className={`w-16 text-center py-2 border-y ${
                         darkMode
                           ? "bg-gray-700 border-gray-600 text-white"
