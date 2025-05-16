@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { ThemeProvider } from "./component/contexts/ThemeContext"
 import { AuthProvider } from "./component/contexts/AuthContext"
 import { NotificationProvider } from "./component/contexts/NotificationContext"
+import { CartProvider } from "./component/contexts/CartContext"
 import { ToastProvider } from "./component/contexts/ToastContext"
 import Layout from "./component/layout/Layout"
 import Welcome from "./component/pages/Welcome"
@@ -30,63 +31,48 @@ import AddProduct from "./component/AddProduct"
 import Items from "./component/pages/Items"
 import ItemDetail from "./component/pages/ItemDetail"
 import ProfileCompletedAuctions from "./component/pages/ProfileCompletedAuctions"
+import OrderSuccess from "./component/pages/OrderSuccess"
+import OrderFail from "./component/pages/OrderFail"
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <NotificationProvider>
-          <ToastProvider>
-            <Router>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Welcome />} />
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/auctions" element={<Auctions />} />
-                  <Route path="/auctions/:id" element={<AuctionDetail />} />
-                  <Route path="/auctions/create" element={<ProtectedRoute><CreateAuction /></ProtectedRoute>} />
-                  <Route path="/products/add" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
-                  <Route path="/items" element={<Items />} />
-                  <Route path="/items/:id" element={<ItemDetail />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/category/:id" element={<CategoryPage />} />
-                  {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
+          <CartProvider>
+            <ToastProvider>
+              <Router>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Welcome />} />
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/auctions" element={<Auctions />} />
+                    <Route path="/auctions/:id" element={<AuctionDetail />} />
+                    <Route path="/auctions/create" element={<ProtectedRoute><CreateAuction /></ProtectedRoute>} />
+                    <Route path="/products/add" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
+                    <Route path="/items" element={<Items />} />
+                    <Route path="/items/:id" element={<ItemDetail />} />
+                    <Route path="/categories" element={<Categories />} />
+                    <Route path="/category/:id" element={<CategoryPage />} />
+                    {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
+                    <Route
+                      path="/payment/success"
+                      element={
+                        <ProtectedRoute>
+                          <OrderSuccess />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="/payment/fail" element={<OrderFail />} />
 
+                    <Route path="/profile/favorites" element={<ProtectedRoute>
 
-                  <Route path="/profile/favorites" element={<ProtectedRoute>
-
-                    <ProfileFavorites />
-                  </ProtectedRoute>} />
-                  {/* <Route
-                    path="profile/auctions"
-                    element={
-                      <ProtectedRoute>
-                        <ProfileAuctions />
-                      </ProtectedRoute>
-                    }
-                  /> */}
-
-                  <Route
-                    path="profile/completed-auctions"
-                    element={
-                      <ProtectedRoute>
-                        <ProfileCompletedAuctions />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  >
+                      <ProfileFavorites />
+                    </ProtectedRoute>} />
                     {/* <Route
                       path="profile/auctions"
                       element={
@@ -95,46 +81,73 @@ function App() {
                         </ProtectedRoute>
                       }
                     /> */}
+
                     <Route
-                      path="profile/bids"
+                      path="profile/completed-auctions"
                       element={
                         <ProtectedRoute>
-                          <ProfileBids />
+                          <ProfileCompletedAuctions />
                         </ProtectedRoute>
                       }
                     />
 
-                  </Route>
-                  {/* Standalone route for favorites */}
+                    <Route
+                      path="profile"
+                      element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      }
+                    >
+                      {/* <Route
+                        path="profile/auctions"
+                        element={
+                          <ProtectedRoute>
+                            <ProfileAuctions />
+                          </ProtectedRoute>
+                        }
+                      /> */}
+                      <Route
+                        path="profile/bids"
+                        element={
+                          <ProtectedRoute>
+                            <ProfileBids />
+                          </ProtectedRoute>
+                        }
+                      />
 
-                  <Route
-                    path="/cart"
-                    element={
-                      <ProtectedRoute>
-                        <Cart />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/messages"
-                    element={
-                      <ProtectedRoute>
-                        <Messages />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/messages/:id"
-                    element={
-                      <ProtectedRoute>
-                        <Conversation />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </Layout>
-            </Router>
-          </ToastProvider>
+                    </Route>
+                    {/* Standalone route for favorites */}
+
+                    <Route
+                      path="/cart"
+                      element={
+                        <ProtectedRoute>
+                          <Cart />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/messages"
+                      element={
+                        <ProtectedRoute>
+                          <Messages />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/messages/:id"
+                      element={
+                        <ProtectedRoute>
+                          <Conversation />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </Layout>
+              </Router>
+            </ToastProvider>
+          </CartProvider>
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>

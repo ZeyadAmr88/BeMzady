@@ -1,19 +1,18 @@
 "use client"
 
-import React, { useState, useEffect, useContext } from "react"
-import { useParams, Link } from "react-router-dom"
+import React, { useState, useEffect } from "react"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { auctionService, userService } from "../services/api"
-import { AuthContext } from "../contexts/AuthContext"
 import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCircle, Mail, Phone, MapPin } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
 import BidHistory from "../auctions/BidHistory"
-import ItemReviews from "../items/ItemReviews"
 import RelatedAuctions from "../auctions/RelatedAuctions"
 import { toast } from "react-hot-toast"
+import { checkStripeRedirect, redirectToStripePayment } from "../utils/stripeHandler"
 
 const AuctionDetail = () => {
     const { id } = useParams()
-    const { user } = useContext(AuthContext)
+    const navigate = useNavigate()
     const [auction, setAuction] = useState(null)
     const [sellerInfo, setSellerInfo] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -28,8 +27,26 @@ const AuctionDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0)
     const [isUserSeller, setIsUserSeller] = useState(false)
     const [isFavorite, setIsFavorite] = useState(false)
+    const [buyNowLoading, setBuyNowLoading] = useState(false)
+    // eslint-disable-next-line no-unused-vars
+    const [bids, setBids] = useState([])
+    const [user, setUser] = useState(null)
 
     useEffect(() => {
+        // Get user data from localStorage
+        const token = localStorage.getItem("token");
+        if (token) {
+            const userData = JSON.parse(localStorage.getItem("user"));
+            setUser(userData);
+        }
+    }, []);
+
+    useEffect(() => {
+        // Check if user is coming back from Stripe checkout
+        if (checkStripeRedirect()) {
+            return; // The utility will handle the redirect
+        }
+
         const fetchAuction = async () => {
             try {
                 const response = await auctionService.getAuctionById(id)
@@ -60,8 +77,16 @@ const AuctionDetail = () => {
                         setSellerLoading(false)
                     }
                 }
-            } catch (error) {
-                console.error("Error fetching auction:", error)
+
+                // Check if auction is in user's favorites if logged in
+                if (user) {
+                    await checkIfFavorite()
+                }
+
+                // Get bids from auction data
+                setBids(auctionData.bids || [])
+            } catch (err) {
+                console.error("Error fetching auction:", err)
                 setError("Failed to load auction details. Please try again later.")
             } finally {
                 setLoading(false)
@@ -70,6 +95,23 @@ const AuctionDetail = () => {
 
         fetchAuction()
     }, [id, user])
+
+    // Check if auction is in user's favorites
+    const checkIfFavorite = async () => {
+        if (!user || !auction) return false;
+
+        try {
+            const response = await userService.getFavorites()
+            const favorites = response.data.data || []
+            // Check if this auction's item is in favorites
+            const isFav = favorites.some(fav => fav._id === auction._id)
+            setIsFavorite(isFav)
+            return isFav
+        } catch (error) {
+            console.error("Error checking favorites:", error)
+            return false
+        }
+    }
 
     useEffect(() => {
         if (!auction) return
@@ -92,24 +134,6 @@ const AuctionDetail = () => {
 
         return () => clearInterval(interval)
     }, [auction])
-
-    // Check if auction is in user's favorites
-    useEffect(() => {
-        const checkFavorite = async () => {
-            if (!user || !auction) return
-
-            try {
-                const response = await userService.getFavorites()
-                const favorites = response.data.data || []
-                // Check if this auction's item is in favorites
-                setIsFavorite(favorites.some(fav => fav._id === auction._id))
-            } catch (error) {
-                console.error("Error checking favorites:", error)
-            }
-        }
-
-        checkFavorite()
-    }, [user, auction])
 
     const toggleFavorite = async (e) => {
         e.preventDefault()
@@ -137,10 +161,7 @@ const AuctionDetail = () => {
     const handleBid = async (e) => {
         e.preventDefault()
 
-        if (!user) {
-            setBidError("Please log in to place a bid")
-            return
-        }
+
 
         // Prevent seller from bidding on their own auction
         if (isUserSeller) {
@@ -196,6 +217,44 @@ const AuctionDetail = () => {
             const errorMsg = error.response?.data?.message || "Failed to place bid. Please try again."
             setBidError(errorMsg)
             toast.error(errorMsg)
+        }
+    }
+
+    const handleBuyNow = async (e) => {
+        e.preventDefault()
+
+        if (!user) {
+            toast.error("Please log in to place a bid")
+            navigate("/login")
+            return
+        }
+
+        // Prevent seller from buying their own auction
+        if (isUserSeller) {
+            toast.error("You cannot buy your own auction")
+            return
+        }
+
+        try {
+            setBuyNowLoading(true)
+            const response = await auctionService.buyNow(auction._id)
+            console.log("Buy now response:", response.data)
+
+            // Show success message
+            toast.success(response.data.message || "Auction purchased successfully")
+
+            // Use our utility to redirect to payment URL
+            if (response.data.paymentUrl) {
+                redirectToStripePayment(response.data.paymentUrl)
+            } else {
+                toast.warning("Payment URL not received. Please try again.")
+            }
+        } catch (error) {
+            console.error("Error buying now:", error)
+            const errorMsg = error.response?.data?.message || "Failed to complete purchase. Please try again."
+            toast.error(errorMsg)
+        } finally {
+            setBuyNowLoading(false)
         }
     }
 
@@ -282,15 +341,6 @@ const AuctionDetail = () => {
                                         }`}
                                 >
                                     Bid History
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab("reviews")}
-                                    className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "reviews"
-                                        ? "border-rose-600 text-rose-600"
-                                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                                        }`}
-                                >
-                                    Reviews
                                 </button>
                             </nav>
                         </div>
@@ -382,9 +432,7 @@ const AuctionDetail = () => {
                                 </div>
                             )}
 
-                            {activeTab === "bids" && <BidHistory auctionId={auction._id} />}
-
-                            {activeTab === "reviews" && <ItemReviews itemId={auction._id} />}
+                            {activeTab === "bids" && <BidHistory bids={bids} />}
                         </div>
                     </div>
                 </div>
@@ -454,9 +502,11 @@ const AuctionDetail = () => {
                                 {auction.buyNowPrice && (
                                     <button
                                         type="button"
+                                        onClick={handleBuyNow}
+                                        disabled={buyNowLoading}
                                         className="w-full mt-2 sm:mt-3 border border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-700 font-medium py-1.5 sm:py-2 px-3 sm:px-4 rounded-md transition-colors text-sm sm:text-base"
                                     >
-                                        Buy Now for ${auction.buyNowPrice.toFixed(2)}
+                                        {buyNowLoading ? "Processing..." : `Buy Now for $${auction.buyNowPrice.toFixed(2)}`}
                                     </button>
                                 )}
                             </form>

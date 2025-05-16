@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { itemService, userService, cartService } from "../services/api";
+import { itemService, userService } from "../services/api";
 import { AuthContext } from "../contexts/AuthContext";
 import { ThemeContext } from "../contexts/ThemeContext";
+import { CartContext } from "../contexts/CartContext";
 import { Heart, ShoppingCart, ArrowLeft, User, Loader, Share2 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import ItemReviews from "../items/ItemReviews";
+import RecommendationList from "../recommendations/RecommendationList";
 
 const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { darkMode } = useContext(ThemeContext);
+  const { addToCart } = useContext(CartContext);
   const [item, setItem] = useState(null);
   const [owner, setOwner] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,11 +92,13 @@ const ItemDetail = () => {
 
     setAddingToCart(true);
     try {
-      await cartService.addToCart(id, quantity);
-      toast.success("Item added to cart");
+      const result = await addToCart(id, quantity);
+      if (result) {
+        toast.success("Item added to cart");
+      }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error(error.response?.data?.message || "Failed to add item to cart");
+      toast.error("Failed to add item to cart");
     } finally {
       setAddingToCart(false);
     }
@@ -168,13 +173,12 @@ const ItemDetail = () => {
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`rounded-md overflow-hidden border-2 ${
-                    selectedImage === index
-                      ? "border-rose-500"
-                      : darkMode
+                  className={`rounded-md overflow-hidden border-2 ${selectedImage === index
+                    ? "border-rose-500"
+                    : darkMode
                       ? "border-gray-700"
                       : "border-gray-200"
-                  }`}
+                    }`}
                 >
                   <img
                     src={image}
@@ -195,11 +199,10 @@ const ItemDetail = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={toggleFavorite}
-                  className={`p-2 rounded-full ${
-                    isFavorite
-                      ? "bg-rose-100 text-rose-600"
-                      : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-                  } hover:bg-rose-100 hover:text-rose-600`}
+                  className={`p-2 rounded-full ${isFavorite
+                    ? "bg-rose-100 text-rose-600"
+                    : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                    } hover:bg-rose-100 hover:text-rose-600`}
                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
                   <Heart size={20} className={isFavorite ? "fill-current" : ""} />
@@ -279,11 +282,10 @@ const ItemDetail = () => {
                       min="1"
                       value={quantity}
                       onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                      className={`w-16 text-center py-2 border-y ${
-                        darkMode
-                          ? "bg-gray-700 border-gray-600 text-white"
-                          : "bg-white border-gray-200 text-gray-900"
-                      }`}
+                      className={`w-16 text-center py-2 border-y ${darkMode
+                        ? "bg-gray-700 border-gray-600 text-white"
+                        : "bg-white border-gray-200 text-gray-900"
+                        }`}
                     />
                     <button
                       onClick={() => setQuantity(quantity + 1)}
@@ -317,6 +319,24 @@ const ItemDetail = () => {
         <h2 className="text-2xl font-bold mb-6">Reviews</h2>
         <ItemReviews itemId={id} />
       </div>
+
+      {/* Add recommendations based on current item */}
+      {item && item._id && (
+        <RecommendationList
+          itemId={item._id}
+          title="Similar Items You Might Like"
+          viewAllLink={`/auctions?category=${item.category}`}
+        />
+      )}
+
+      {/* If you also want to show category-based recommendations */}
+      {item && item.category && (
+        <RecommendationList
+          categoryId={item.category}
+          title={`More Items in ${typeof item.category === 'object' ? item.category.name || 'This Category' : 'This Category'}`}
+          viewAllLink={`/auctions?category=${typeof item.category === 'object' ? item.category._id : item.category}`}
+        />
+      )}
     </div>
   );
 };

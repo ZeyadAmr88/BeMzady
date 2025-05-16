@@ -1,28 +1,23 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { api, bidService, userService } from "../services/api"
+import { userService } from "../services/api"
 import { formatDistanceToNow } from "date-fns"
 import { User } from "lucide-react"
 
-const BidHistory = ({ auctionId }) => {
-    const [bids, setBids] = useState([])
-    const [loading, setLoading] = useState(true)
+const BidHistory = ({ bids = [] }) => {
+    const [loading, setLoading] = useState(false)
     const [userLoading, setUserLoading] = useState(false)
     const [error, setError] = useState(null)
     const [bidderInfo, setBidderInfo] = useState({})
 
     useEffect(() => {
-        const fetchBids = async () => {
-            try {
-                // Get auction data with bids
-                const response = await api.get(`/auctions/${auctionId}`)
-                const auctionData = response.data.data
-                const bidsList = auctionData.bids || []
-                setBids(bidsList)
+        const fetchBidderInfo = async () => {
+            if (bids.length === 0) return;
 
+            try {
                 // Fetch user information for each bidder
-                const bidderIds = [...new Set(bidsList.map(bid => bid.bidder))]
+                const bidderIds = [...new Set(bids.map(bid => bid.bidder))]
                 const bidderData = {}
 
                 if (bidderIds.length > 0) {
@@ -48,15 +43,13 @@ const BidHistory = ({ auctionId }) => {
 
                 setBidderInfo(bidderData)
             } catch (error) {
-                console.error("Error fetching bid history:", error)
-                setError("Failed to load bid history. Please try again later.")
-            } finally {
-                setLoading(false)
+                console.error("Error fetching bidder information:", error)
+                setError("Failed to load bidder information. Please try again later.")
             }
         }
 
-        fetchBids()
-    }, [auctionId])
+        fetchBidderInfo()
+    }, [bids])
 
     if (loading) {
         return (

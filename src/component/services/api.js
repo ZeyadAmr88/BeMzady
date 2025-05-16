@@ -64,6 +64,11 @@ export const auctionService = {
             amount: amount
         });
     },
+    buyNow: (auctionId) => {
+        const buyerId = localStorage.getItem("user_id");
+        console.log(`Buying auction: Auction ID: ${auctionId}, Buyer ID: ${buyerId}`);
+        return api.post(`/auctions/${auctionId}/buy-now`);
+    },
     endAuction: (auctionId) => api.post(`/auctions/${auctionId}/end`),
     createAuction: (formData) =>
         api.post("/auctions", formData, {
@@ -78,14 +83,14 @@ export const auctionService = {
 export const bidService = {
     getUserBids: () => api.get("/bids/my-bids"),
     getBidHistory: (auctionId) => api.get(`/bids/auction/${auctionId}`),
-    retractBid: (bidId) => api.delete(`/bids/${bidId}`),
 }
 
 export const categoryService = {
     getCategories: (params) => api.get("/categories", { params }),
     getCategoryById: (id) => api.get(`/categories/${id}`),
-    getSubcategoriesByCategory: (categoryId) => api.get(`/categories/${categoryId}/Subcategories`),
+    getSubcategoriesByCategory: (categoryId) => api.get(`/subcategories/category/${categoryId}`),
     getCategoryWithAuctions: (id) => api.get(`/categories/${id}/auctions`),
+    getCategoriesWithSubcategories: () => api.get("/categories/with-subcategories"),
 }
 
 export const subcategoryService = {
@@ -150,6 +155,10 @@ export const userService = {
         api.patch(`/users/${localStorage.getItem("user_id")}/role`, {
             role,
         }),
+    // New endpoints for seller dashboard
+    getSellerOverview: () => api.get("/analytics/seller/overview"),
+    getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
+    getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
 }
 
 export const cartService = {
@@ -186,6 +195,20 @@ export const cartService = {
         }
         return api.delete("/cart/clear");
     },
+    checkout: () => {
+        const userId = localStorage.getItem("user_id");
+        if (!userId) {
+            return Promise.reject(new Error("User not authenticated"));
+        }
+
+        // Use the API base URL but with complete configuration
+        return api.get("/cart/checkout", {
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+    }
 }
 
 export const messageService = {
@@ -194,4 +217,21 @@ export const messageService = {
     sendMessage: (conversationId, content) => api.post(`/messages/conversations/${conversationId}`, { content }),
     createConversation: (recipientId) => api.post("/messages/conversations", { recipientId }),
     deleteConversation: (conversationId) => api.delete(`/messages/conversations/${conversationId}`),
+}
+
+export const recommendationService = {
+    // Get recommendations based on an item ID
+    getRecommendationsByItem: (itemId) => api.get(`/recommendations/${itemId}`),
+
+    // Get recommendations based on a category ID - Use items endpoint filtered by category as alternative
+    getRecommendationsByCategory: (categoryId) => api.get(`/items`, {
+        params: {
+            category: categoryId,
+            limit: 6,
+            sort: "createdAt:-1"  // Get newest items first
+        }
+    }),
+
+    // Get recommendations with filters - Use items endpoint as alternative
+    getRecommendationsWithFilters: (params) => api.get('/items', { params })
 }
