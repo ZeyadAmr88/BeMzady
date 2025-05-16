@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useContext } from "react"
+import React, { useState, useContext, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { AuthContext } from "../contexts/AuthContext"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
@@ -11,6 +11,7 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
+    const [rememberMe, setRememberMe] = useState(false)
 
     const { login } = useContext(AuthContext)
     const navigate = useNavigate()
@@ -19,13 +20,29 @@ const Login = () => {
     // Get redirect path from location state or default to home
     const from = location.state?.from?.pathname || "/"
 
+    // Check if we have saved credentials
+    useEffect(() => {
+        const savedEmail = localStorage.getItem("rememberedEmail")
+        if (savedEmail) {
+            setEmail(savedEmail)
+            setRememberMe(true)
+        }
+    }, [])
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError("")
         setLoading(true)
 
         try {
-            const result = await login(email, password)
+            // Handle remember me functionality
+            if (rememberMe) {
+                localStorage.setItem("rememberedEmail", email)
+            } else {
+                localStorage.removeItem("rememberedEmail")
+            }
+
+            const result = await login(email, password, rememberMe)
 
             if (result.success) {
                 navigate(from, { replace: true })
@@ -105,6 +122,8 @@ const Login = () => {
                             id="remember"
                             type="checkbox"
                             className="w-4 h-4 text-rose-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-rose-500"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
                         />
                         <label htmlFor="remember" className="ml-2 text-sm">
                             Remember me

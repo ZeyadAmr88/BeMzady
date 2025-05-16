@@ -11,10 +11,12 @@ import { AuthContext } from "../contexts/AuthContext"
 const Auctions = () => {
     const [searchParams] = useSearchParams()
     const navigate = useNavigate()
+    // eslint-disable-next-line no-unused-vars
     const { user } = useContext(AuthContext)
     const [auctions, setAuctions] = useState([])
     const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(true)
+    // eslint-disable-next-line no-unused-vars
     const [error, setError] = useState(null)
     const [totalPages, setTotalPages] = useState(1)
     const [showFilters, setShowFilters] = useState(false)
@@ -26,7 +28,7 @@ const Auctions = () => {
             // Update user role to seller before navigating to create auction
             const response = await userService.updateRole("seller")
             console.log("response role", response);
-            
+
             toast.success("Your account has been upgraded to seller status!")
             navigate("/auctions/create")
         } catch (error) {
@@ -128,7 +130,6 @@ const Auctions = () => {
         setFilters((prev) => ({
             ...prev,
             [name]: value,
-            // Reset page when changing filters
             ...(name !== "page" && { page: 1 }),
         }))
     }
@@ -156,7 +157,6 @@ const Auctions = () => {
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Explore Auctions</h1>
 
-            {/* Search and Filter Bar */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <form onSubmit={handleSearch} className="flex-1">
                     <div className="relative">
@@ -333,9 +333,9 @@ const Auctions = () => {
             )}
 
             {/* Error Message */}
-            {error && (
+            {/* {error && (
                 <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-lg mb-6">{error}</div>
-            )}
+            )} */}
 
             {/* Loading State */}
             {loading ? (

@@ -16,18 +16,25 @@ const RelatedAuctions = ({ categoryId, currentAuctionId }) => {
             }
 
             try {
-                const response = await auctionService.getAuctions({
-                    category: categoryId,
+                // Use the specialized function for getting auctions by category
+                const response = await auctionService.getAuctionsByCategory(categoryId, {
                     limit: 4,
                     status: "active",
+                    exclude: currentAuctionId // Exclude the current auction from results
                 })
 
-                // Filter out the current auction
+                // Filter out the current auction if it's still in the results
                 const filteredAuctions = response.data.data.filter((auction) => auction._id !== currentAuctionId)
 
-                setAuctions(filteredAuctions)
+                // Only show up to 4 related auctions
+                setAuctions(filteredAuctions.slice(0, 4))
             } catch (error) {
                 console.error("Error fetching related auctions:", error)
+                console.error("Error details:", {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                })
             } finally {
                 setLoading(false)
             }
@@ -44,19 +51,22 @@ const RelatedAuctions = ({ categoryId, currentAuctionId }) => {
         )
     }
 
-    if (auctions.length === 0) {
-        return null
-    }
+    // We'll handle empty auctions in the return statement
 
     return (
-        <section className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Related Auctions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {auctions.map((auction) => (
-                    <AuctionCard key={auction._id} auction={auction} />
-                ))}
-            </div>
-        </section>
+        <div>
+            {auctions.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {auctions.map((auction) => (
+                        <AuctionCard key={auction._id} auction={auction} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-8">
+                    <p className="text-gray-500 dark:text-gray-400">No related auctions found.</p>
+                </div>
+            )}
+        </div>
     )
 }
 

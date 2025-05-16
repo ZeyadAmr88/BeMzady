@@ -8,7 +8,32 @@ export const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null)
-    const [token, setToken] = useState(localStorage.getItem("token") || null)
+    // Only use the token from localStorage if persistentLogin is set or we're in an active session
+    const [token, setToken] = useState(() => {
+        const savedToken = localStorage.getItem("token")
+        const isPersistent = localStorage.getItem("persistentLogin") === "true"
+
+        // If there's no persistent login flag and we're loading the page fresh,
+        // we should only use the token if the user explicitly asked to be remembered
+        if (!isPersistent && savedToken) {
+            // Check if this is a page refresh/new tab or a completely new session
+            const isNewSession = !sessionStorage.getItem("activeSession")
+
+            if (isNewSession) {
+                // Clear token if this is a new session and remember me wasn't checked
+                localStorage.removeItem("token")
+                localStorage.removeItem("user_id")
+                return null
+            } else {
+                // Keep token for page refreshes within the same session
+                return savedToken
+            }
+        }
+
+        // Set session flag
+        sessionStorage.setItem("activeSession", "true")
+        return savedToken || null
+    })
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -35,16 +60,25 @@ export const AuthProvider = ({ children }) => {
         fetchUser()
     }, [token])
 
-    const login = async (email, password) => {
+    const login = async (email, password, rememberMe = false) => {
         try {
             const response = await api.post("/Auth/login", { email, password })
             const { token, data } = response.data
 
+            // Store token and user data in localStorage
             localStorage.setItem("token", token)
-            console.log("dt",data)
             localStorage.setItem("user_id", data?.id)
-            const dataa = localStorage.getItem("user_id")
-           console.log("dd",dataa)
+            localStorage.setItem("user", JSON.stringify(data))
+
+            // If remember me is checked, store a flag to indicate persistent login
+            if (rememberMe) {
+                localStorage.setItem("persistentLogin", "true")
+            } else {
+                localStorage.removeItem("persistentLogin")
+            }
+
+            // Always set the session flag when logging in
+            sessionStorage.setItem("activeSession", "true")
 
             setToken(token)
             setUser(data)
@@ -81,6 +115,11 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem("token")
         localStorage.removeItem("user_id")
+        localStorage.removeItem("user")
+        localStorage.removeItem("persistentLogin")
+        sessionStorage.removeItem("activeSession")
+        // Don't remove rememberedEmail to keep the email field pre-filled
+        // even after logout if the user had checked "Remember me"
         setToken(null)
         setUser(null)
     }

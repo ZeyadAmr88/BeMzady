@@ -34,10 +34,13 @@ const Home = () => {
                     status: "active",
                 })
 
-                // Fetch categories
+                // Fetch categories with pagination
                 const categoriesResponse = await categoryService.getCategories({
+                    page: 1,
                     limit: 6,
                 })
+
+                console.log("Home categories response:", categoriesResponse.data)
 
                 setFeaturedAuctions(featuredResponse.data.data)
                 setEndingSoonAuctions(endingSoonResponse.data.data)
@@ -63,7 +66,7 @@ const Home = () => {
     return (
         <div>
             <HeroSection />
-
+            <HowItWorks />
             {/* Featured Auctions */}
             <section className="py-12">
                 <div className="container mx-auto px-4">
@@ -124,7 +127,7 @@ const Home = () => {
                 </div>
             </section>
 
-            <HowItWorks />
+            
             <Testimonials />
         </div>
     )
