@@ -1,18 +1,18 @@
-"use client"
-import React, { createContext, useContext } from "react"
-import toast from "react-hot-toast"
+"use client";
+import React, { createContext, useContext } from "react";
+import toast from "react-hot-toast";
 
 // Create the context
-export const ToastContext = createContext()
+export const ToastContext = createContext();
 
 // Custom hook for using the toast context
 export const useToast = () => {
-  const context = useContext(ToastContext)
+  const context = useContext(ToastContext);
   if (!context) {
-    throw new Error("useToast must be used within a ToastProvider")
+    throw new Error("useToast must be used within a ToastProvider");
   }
-  return context
-}
+  return context;
+};
 
 export const ToastProvider = ({ children }) => {
   // Success toast function
@@ -29,8 +29,8 @@ export const ToastProvider = ({ children }) => {
         primary: "#FFFFFF",
         secondary: "#10B981",
       },
-    })
-  }
+    });
+  };
 
   // Error toast function
   const showError = (message) => {
@@ -46,8 +46,8 @@ export const ToastProvider = ({ children }) => {
         primary: "#FFFFFF",
         secondary: "#EF4444",
       },
-    })
-  }
+    });
+  };
 
   // Info toast function
   const showInfo = (message) => {
@@ -60,8 +60,8 @@ export const ToastProvider = ({ children }) => {
         fontWeight: "500",
       },
       icon: "ℹ️",
-    })
-  }
+    });
+  };
 
   // Warning toast function
   const showWarning = (message) => {
@@ -74,13 +74,13 @@ export const ToastProvider = ({ children }) => {
         fontWeight: "500",
       },
       icon: "⚠️",
-    })
-  }
+    });
+  };
 
   // Dismiss all toasts
   const dismissAll = () => {
-    toast.dismiss()
-  }
+    toast.dismiss();
+  };
 
   // Provide the toast functions to the context
   return (
@@ -95,5 +95,5 @@ export const ToastProvider = ({ children }) => {
     >
       {children}
     </ToastContext.Provider>
-  )
-}
+  );
+};

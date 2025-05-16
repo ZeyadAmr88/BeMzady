@@ -1,5 +1,5 @@
-"use client"
-import React from 'react';
+"use client";
+import React from "react";
 
 import { useState, useContext, useEffect, useRef, useMemo } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -7,11 +7,10 @@ import { ThemeContext } from "../contexts/ThemeContext"
 import { AuthContext } from "../contexts/AuthContext"
 import { NotificationContext } from "../contexts/NotificationContext"
 import { CartContext } from "../contexts/CartContext"
-import { categoryService } from "../services/api"
-import { Sun, Moon, ShoppingCart, Bell, MessageCircle, User, Menu, X, Search, ChevronRight, ChevronDown } from "lucide-react"
+import { categoryService, subcategoryService } from "../services/api"
+import { Sun, Moon, ShoppingCart, Bell, MessageCircle, User, Menu, X, Search, ChevronRight } from "lucide-react"
 import NotificationDropdown from "../notifications/NotificationDropdown"
 import MobileMenu from "./MobileMenu"
-
 /* Add styles at the top of the component */
 const scrollbarStyles = `
   /* Custom scrollbars for the category menu */
@@ -56,20 +55,21 @@ const Navbar = () => {
     const { darkMode, toggleTheme } = useContext(ThemeContext)
     const { user, logout } = useContext(AuthContext)
     const { unreadCount } = useContext(NotificationContext)
-    const { cartCount } = useContext(CartContext)
+  const { cartCount } = useContext(CartContext)
     const [categories, setCategories] = useState([])
-    const [categoriesWithSubs, setCategoriesWithSubs] = useState([])
+  const [categoriesWithSubs, setCategoriesWithSubs] = useState([])
     const [hoveredCategory, setHoveredCategory] = useState(null)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
-    const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
     const navigate = useNavigate()
     const profileRef = useRef(null)
     const notificationRef = useRef(null)
-    const categoryMenuRef = useRef(null)
+  const categoryMenuRef = useRef(null)
     const categoryTimeoutRef = useRef(null)
 
     // Fetch all categories and subcategories when component mounts
@@ -146,34 +146,59 @@ const Navbar = () => {
             }
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const handleSearch = (e) => {
-        e.preventDefault()
-        navigate(`/auctions?keyword=${searchQuery}`)
-    }
-
-    const handleLogout = () => {
-        logout()
-        navigate("/")
-    }
-
-    // Toggle category menu visibility
-    const toggleCategoryMenu = () => {
-        setIsCategoryMenuOpen(!isCategoryMenuOpen);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`/auctions?keyword=${searchQuery}`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  useEffect(() => {
+    // Only fetch unread messages if user is logged in
+    if (!user) return;
+
+    const fetchUnreadMessageCount = async () => {
+      try {
+        const response = await messageService.getUnreadCount();
+        // Handle different response formats safely
+        const count =
+          response?.data?.data?.count ||
+          response?.data?.count ||
+          response?.data ||
+          0;
+        setUnreadMessageCount(count);
+      } catch (error) {
+        console.error("Error fetching unread message count:", error);
+        // Set to 0 on error to avoid UI issues
+        setUnreadMessageCount(0);
+      }
+    };
+
+    // Fetch immediately
+    fetchUnreadMessageCount();
+
+    // And set up interval to refresh every minute
+    const intervalId = setInterval(fetchUnreadMessageCount, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [user]);
 
     return (
         <header className={`sticky top-0 z-50 backdrop-blur-md ${darkMode
             ? "bg-gray-900/80 border-b border-gray-800"
             : "bg-white/80 border-b border-gray-200"
             } shadow-sm`}>
-            {/* Add scrollbar styles */}
-            <style>{scrollbarStyles}</style>
+        {/* Add scrollbar styles */}
+        <style>{scrollbarStyles}</style>
             <div className="container mx-auto px-2 sm:px-4">
                 <div className="flex items-center justify-between h-14 sm:h-16">
                     {/* Logo */}
@@ -294,42 +319,44 @@ const Navbar = () => {
                         </div>
                     </nav>
 
-                    {/* Search Bar */}
-                    <div className="hidden md:flex flex-1 max-w-md mx-4">
-                        <form onSubmit={handleSearch} className="w-full">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search auctions..."
-                                    className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${darkMode
-                                        ? "bg-gray-800/50 border-gray-700 focus:border-rose-500 focus:ring-rose-500/20"
-                                        : "bg-gray-100/50 border-gray-200 focus:border-rose-500 focus:ring-rose-500/20"
-                                        } focus:outline-none focus:ring-2`}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <button
-                                    type="submit"
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-rose-600 transition-colors duration-200"
-                                >
-                                    <Search size={18} />
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-md mx-4">
+            <form onSubmit={handleSearch} className="w-full">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search auctions..."
+                  className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${
+                    darkMode
+                      ? "bg-gray-800/50 border-gray-700 focus:border-rose-500 focus:ring-rose-500/20"
+                      : "bg-gray-100/50 border-gray-200 focus:border-rose-500 focus:ring-rose-500/20"
+                  } focus:outline-none focus:ring-2`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-rose-600 transition-colors duration-200"
+                >
+                  <Search size={18} />
+                </button>
+              </div>
+            </form>
+          </div>
 
-                    {/* Right Side Icons */}
-                    <div className="flex items-center space-x-4">
-                        <button
-                            onClick={toggleTheme}
-                            className={`p-2 rounded-full transition-all duration-200 ${darkMode
-                                ? "bg-gray-800/50 hover:bg-gray-700/50 text-amber-400"
-                                : "bg-gray-100/50 hover:bg-gray-200/50 text-gray-600"
-                                }`}
-                            aria-label="Toggle theme"
-                        >
-                            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-                        </button>
+          {/* Right Side Icons */}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                darkMode
+                  ? "bg-gray-800/50 hover:bg-gray-700/50 text-amber-400"
+                  : "bg-gray-100/50 hover:bg-gray-200/50 text-gray-600"
+              }`}
+              aria-label="Toggle theme"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
                         {user ? (
                             <>
@@ -348,123 +375,144 @@ const Navbar = () => {
                                     )}
                                 </Link>
 
-                                <div className="relative" ref={notificationRef}>
-                                    <button
-                                        onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                                        className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                                            ? "hover:bg-gray-700/50 text-gray-300"
-                                            : "hover:bg-gray-200/50 text-gray-600"
-                                            }`}
-                                        aria-label="Notifications"
-                                    >
-                                        <Bell size={20} />
-                                        {unreadCount > 0 && (
-                                            <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-rose-600 rounded-full">
-                                                {unreadCount > 9 ? "9+" : unreadCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    {isNotificationsOpen && <NotificationDropdown />}
-                                </div>
-
-                                <Link
-                                    to="/messages"
-                                    className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                                        ? "hover:bg-gray-700/50 text-gray-300"
-                                        : "hover:bg-gray-200/50 text-gray-600"
-                                        }`}
-                                >
-                                    <MessageCircle size={20} />
-                                </Link>
-
-                                <div className="relative group hidden md:block" ref={profileRef}>
-                                    <button
-                                        className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                                            ? "hover:bg-gray-700/50"
-                                            : "hover:bg-gray-200/50"
-                                            }`}
-                                        aria-label="User menu"
-                                    >
-                                        {user.user_picture ? (
-                                            <img
-                                                src={user.user_picture || "/placeholder.svg"}
-                                                alt={user.username}
-                                                className="w-6 h-6 rounded-full object-cover ring-2 ring-rose-500/20"
-                                            />
-                                        ) : (
-                                            <User size={20} className="text-gray-600 dark:text-gray-300" />
-                                        )}
-                                    </button>
-                                    {/* Dropdown on hover */}
-                                    <div
-                                        className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
-                                            ? "bg-gray-800/90 backdrop-blur-sm"
-                                            : "bg-white/90 backdrop-blur-sm"
-                                            } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
-                                    >
-                                        <div className="py-1" role="menu" aria-orientation="vertical">
-                                            <div className="px-4 py-2 border-b border-gray-200/20 dark:border-gray-700/20">
-                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.username}</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                                            </div>
-                                            <Link
-                                                to="/profile"
-                                                className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                    ? "hover:bg-gray-700/50 text-gray-300"
-                                                    : "hover:bg-gray-100/50 text-gray-600"
-                                                    }`}
-                                            >
-                                                Profile
-                                            </Link>
-                                            <Link
-                                                to="/products/add"
-                                                className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                    ? "hover:bg-gray-700/50 text-gray-300"
-                                                    : "hover:bg-gray-100/50 text-gray-600"
-                                                    }`}
-                                            >
-                                                Add Product
-                                            </Link>
-                                            <button
-                                                onClick={handleLogout}
-                                                className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                                                    ? "hover:bg-gray-700/50 text-gray-300"
-                                                    : "hover:bg-gray-100/50 text-gray-600"
-                                                    }`}
-                                            >
-                                                Sign out
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <Link
-                                to="/login"
-                                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${darkMode
-                                    ? "hover:bg-primary-700/50 text-primary-300"
-                                    : "hover:bg-primary-200/50 text-primary-600"
-                                    }`}
-                            >
-                                Login
-                            </Link>
-                        )}
-
-                        <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                            aria-label="Menu"
-                        >
-                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
+                <div className="relative" ref={notificationRef}>
+                  <button
+                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                    className={`relative p-2 rounded-full transition-all duration-200 ${
+                      darkMode
+                        ? "hover:bg-gray-700/50 text-gray-300"
+                        : "hover:bg-gray-200/50 text-gray-600"
+                    }`}
+                    aria-label="Notifications"
+                  >
+                    <Bell size={20} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-rose-600 rounded-full">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {isNotificationsOpen && <NotificationDropdown />}
                 </div>
-            </div>
 
-            {/* Mobile menu */}
-            {isMenuOpen && <MobileMenu setIsMenuOpen={setIsMenuOpen} />}
-        </header>
-    )
-}
+                <Link
+                  to="/messages"
+                  className="relative p-1.5 text-gray-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400 transition-colors duration-200"
+                >
+                  <MessageCircle size={22} />
+                  {unreadMessageCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                    </span>
+                  )}
+                </Link>
 
-export default Navbar
+                <div
+                  className="relative group hidden md:block"
+                  ref={profileRef}
+                >
+                  <button
+                    className={`relative p-2 rounded-full transition-all duration-200 ${
+                      darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-200/50"
+                    }`}
+                    aria-label="User menu"
+                  >
+                    {user.user_picture ? (
+                      <img
+                        src={user.user_picture || "/placeholder.svg"}
+                        alt={user.username}
+                        className="w-6 h-6 rounded-full object-cover ring-2 ring-rose-500/20"
+                      />
+                    ) : (
+                      <User
+                        size={20}
+                        className="text-gray-600 dark:text-gray-300"
+                      />
+                    )}
+                  </button>
+                  {/* Dropdown on hover */}
+                  <div
+                    className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${
+                      darkMode
+                        ? "bg-gray-800/90 backdrop-blur-sm"
+                        : "bg-white/90 backdrop-blur-sm"
+                    } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
+                  >
+                    <div
+                      className="py-1"
+                      role="menu"
+                      aria-orientation="vertical"
+                    >
+                      <div className="px-4 py-2 border-b border-gray-200/20 dark:border-gray-700/20">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {user.username}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <Link
+                        to="/profile"
+                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${
+                          darkMode
+                            ? "hover:bg-gray-700/50 text-gray-300"
+                            : "hover:bg-gray-100/50 text-gray-600"
+                        }`}
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        to="/products/add"
+                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${
+                          darkMode
+                            ? "hover:bg-gray-700/50 text-gray-300"
+                            : "hover:bg-gray-100/50 text-gray-600"
+                        }`}
+                      >
+                        Add Product
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
+                          darkMode
+                            ? "hover:bg-gray-700/50 text-gray-300"
+                            : "hover:bg-gray-100/50 text-gray-600"
+                        }`}
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${
+                  darkMode
+                    ? "hover:bg-primary-700/50 text-primary-300"
+                    : "hover:bg-primary-200/50 text-primary-600"
+                }`}
+              >
+                Login
+              </Link>
+            )}
+
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Menu"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && <MobileMenu setIsMenuOpen={setIsMenuOpen} />}
+    </header>
+  );
+};
+
+export default Navbar;
