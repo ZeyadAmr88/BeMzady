@@ -20,8 +20,7 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log(
-      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${
-        config.url
+      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url
       }`
     );
     const token = localStorage.getItem("token");
@@ -58,30 +57,30 @@ api.interceptors.response.use(
 );
 
 export const auctionService = {
-    getAuctions: () => api.get("/auctions"),
-    getAuctionById: (id) => api.get(`/auctions/${id}`),
-    placeBid: (auctionId, amount) => {
-        const bidderId = localStorage.getItem("user_id");
-        console.log(`Placing bid: Auction ID: ${auctionId}, Bidder ID: ${bidderId}, Amount: ${amount}`);
-        return api.post(`/auctions/${auctionId}/bid`, {
-            bidder: bidderId,
-            amount: amount
-        });
-    },
-    buyNow: (auctionId) => {
-        const buyerId = localStorage.getItem("user_id");
-        console.log(`Buying auction: Auction ID: ${auctionId}, Buyer ID: ${buyerId}`);
-        return api.post(`/auctions/${auctionId}/buy-now`);
-    },
-    endAuction: (auctionId) => api.post(`/auctions/${auctionId}/end`),
-    createAuction: (formData) =>
-        api.post("/auctions", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        }),
-    getUserAuctions: () => api.get("/auctions/my-auctions"),
-    deleteAuction: (auctionId) => api.delete(`/auctions/${auctionId}`),
+  getAuctions: () => api.get("/auctions"),
+  getAuctionById: (id) => api.get(`/auctions/${id}`),
+  placeBid: (auctionId, amount) => {
+    const bidderId = localStorage.getItem("user_id");
+    console.log(`Placing bid: Auction ID: ${auctionId}, Bidder ID: ${bidderId}, Amount: ${amount}`);
+    return api.post(`/auctions/${auctionId}/bid`, {
+      bidder: bidderId,
+      amount: amount
+    });
+  },
+  buyNow: (auctionId) => {
+    const buyerId = localStorage.getItem("user_id");
+    console.log(`Buying auction: Auction ID: ${auctionId}, Buyer ID: ${buyerId}`);
+    return api.post(`/auctions/${auctionId}/buy-now`);
+  },
+  endAuction: (auctionId) => api.post(`/auctions/${auctionId}/end`),
+  createAuction: (formData) =>
+    api.post("/auctions", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  getUserAuctions: () => api.get("/auctions/my-auctions"),
+  deleteAuction: (auctionId) => api.delete(`/auctions/${auctionId}`),
 }
 
 export const bidService = {
@@ -91,11 +90,11 @@ export const bidService = {
 };
 
 export const categoryService = {
-    getCategories: (params) => api.get("/categories", { params }),
-    getCategoryById: (id) => api.get(`/categories/${id}`),
-    getSubcategoriesByCategory: (categoryId) => api.get(`/subcategories/category/${categoryId}`),
-    getCategoryWithAuctions: (id) => api.get(`/categories/${id}/auctions`),
-    getCategoriesWithSubcategories: () => api.get("/categories/with-subcategories"),
+  getCategories: (params) => api.get("/categories", { params }),
+  getCategoryById: (id) => api.get(`/categories/${id}`),
+  getSubcategoriesByCategory: (categoryId) => api.get(`/subcategories/category/${categoryId}`),
+  getCategoryWithAuctions: (id) => api.get(`/categories/${id}/auctions`),
+  getCategoriesWithSubcategories: () => api.get("/categories/with-subcategories"),
 }
 
 export const subcategoryService = {
@@ -144,80 +143,80 @@ export const itemService = {
 };
 
 export const userService = {
-    getProfile: () => api.get("/users/MyProfile"),
-    getUserById: (userId) => api.get(`/users/${userId}`),
-    updateProfile: (userData) =>
-        api.patch(`/users/${localStorage.getItem("user_id")}`, userData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        }),
-    getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
-    addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
-    removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
-    updatePassword: (currentPassword, newPassword) =>
-        api.patch(`/users/${localStorage.getItem("user_id")}/password`, {
-            currentPassword,
-            newPassword,
-        }),
-    updateRole: (role) =>
-        api.patch(`/users/${localStorage.getItem("user_id")}/role`, {
-            role,
-        }),
-    // New endpoints for seller dashboard
-    getSellerOverview: () => api.get("/analytics/seller/overview"),
-    getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
-    getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
+  getProfile: () => api.get("/users/MyProfile"),
+  getUserById: (userId) => api.get(`/users/${userId}`),
+  updateProfile: (userData) =>
+    api.patch(`/users/${localStorage.getItem("user_id")}`, userData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
+  addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
+  removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
+  updatePassword: (currentPassword, newPassword) =>
+    api.patch(`/users/${localStorage.getItem("user_id")}/password`, {
+      currentPassword,
+      newPassword,
+    }),
+  updateRole: (role) =>
+    api.patch(`/users/${localStorage.getItem("user_id")}/role`, {
+      role,
+    }),
+  // New endpoints for seller dashboard
+  getSellerOverview: () => api.get("/analytics/seller/overview"),
+  getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
+  getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
 }
 
 export const cartService = {
-    getCart: () => {
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-            return Promise.reject(new Error("User not authenticated"));
-        }
-        return api.get("/cart");
-    },
-    addToCart: (itemId, quantity) => {
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-            return Promise.reject(new Error("User not authenticated"));
-        }
-        // Ensure quantity is a valid number
-        const validQuantity = parseInt(quantity) || 1;
-        return api.post("/cart/add", {
-            itemId,
-            quantity: validQuantity
-        });
-    },
-    removeFromCart: (itemId) => {
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-            return Promise.reject(new Error("User not authenticated"));
-        }
-        return api.delete("/cart/remove", { data: { itemId } });
-    },
-    clearCart: () => {
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-            return Promise.reject(new Error("User not authenticated"));
-        }
-        return api.delete("/cart/clear");
-    },
-    checkout: () => {
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-            return Promise.reject(new Error("User not authenticated"));
-        }
-
-        // Use the API base URL but with complete configuration
-        return api.get("/cart/checkout", {
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            }
-        });
+  getCart: () => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      return Promise.reject(new Error("User not authenticated"));
     }
+    return api.get("/cart");
+  },
+  addToCart: (itemId, quantity) => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      return Promise.reject(new Error("User not authenticated"));
+    }
+    // Ensure quantity is a valid number
+    const validQuantity = parseInt(quantity) || 1;
+    return api.post("/cart/add", {
+      itemId,
+      quantity: validQuantity
+    });
+  },
+  removeFromCart: (itemId) => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      return Promise.reject(new Error("User not authenticated"));
+    }
+    return api.delete("/cart/remove", { data: { itemId } });
+  },
+  clearCart: () => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      return Promise.reject(new Error("User not authenticated"));
+    }
+    return api.delete("/cart/clear");
+  },
+  checkout: () => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      return Promise.reject(new Error("User not authenticated"));
+    }
+
+    // Use the API base URL but with complete configuration
+    return api.get("/cart/checkout", {
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+    });
+  }
 }
 
 export const messageService = {
@@ -260,21 +259,21 @@ export const messageService = {
         return { data: { data: [] } };
       });
   },
-  
+
   sendMessage: (recipientId, content) => {
     if (!recipientId || !content) {
       console.error("Missing recipientId or content.");
       return Promise.reject(new Error("Both recipientId and content are required."));
     }
-  
+
     const payload = {
       recipientId: recipientId,
       content: content,
     };
-  
+
     console.log("Sending message to:", recipientId);
     console.log("Message payload:", payload);
-  
+
     return api
       .post("/messages/", payload)
       .then((response) => {
@@ -287,7 +286,7 @@ export const messageService = {
         return Promise.reject(error);
       });
   },
-  
+
 
   createConversation: (recipientId) => {
     console.log("Creating conversation with:", recipientId);
@@ -343,4 +342,10 @@ export const messageService = {
       return Promise.reject(error);
     });
   },
+};
+
+export const recommendationService = {
+  getRecommendationsByItem: (itemId) => api.get(`/recommendations/item/${itemId}`),
+  getRecommendationsByCategory: (categoryId) => api.get(`/recommendations/category/${categoryId}`),
+  getRecommendationsWithFilters: (filters) => api.get('/recommendations', { params: filters })
 };

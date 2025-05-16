@@ -22,14 +22,15 @@ const RecommendationList = ({
             try {
                 let response;
                 if (itemId) {
+                    console.log("Fetching recommendations for item:", itemId);
                     response = await recommendationService.getRecommendationsByItem(itemId);
                 } else if (categoryId) {
                     const categoryIdValue = typeof categoryId === 'object' && categoryId._id ?
                         categoryId._id : categoryId;
-
-                    console.log("Using category ID for recommendations:", categoryIdValue);
+                    console.log("Fetching recommendations for category:", categoryIdValue);
                     response = await recommendationService.getRecommendationsByCategory(categoryIdValue);
                 } else {
+                    console.log("Fetching general recommendations");
                     response = await recommendationService.getRecommendationsWithFilters({
                         limit,
                         sort: "createdAt:-1"
@@ -38,18 +39,28 @@ const RecommendationList = ({
 
                 console.log("Recommendation response:", response);
 
-                if (response.data && Array.isArray(response.data)) {
-                    setRecommendations(response.data);
-                } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                    setRecommendations(response.data.data);
-                } else {
-                    console.warn("Unexpected response format:", response.data);
-                    setRecommendations([]);
+                // Handle different response formats
+                let recommendationsData = [];
+                if (response.data) {
+                    if (Array.isArray(response.data)) {
+                        recommendationsData = response.data;
+                    } else if (response.data.data && Array.isArray(response.data.data)) {
+                        recommendationsData = response.data.data;
+                    } else if (response.data.items && Array.isArray(response.data.items)) {
+                        recommendationsData = response.data.items;
+                    }
                 }
 
+                console.log("Processed recommendations:", recommendationsData);
+                setRecommendations(recommendationsData);
                 setError(null);
             } catch (err) {
                 console.error("Error fetching recommendations:", err);
+                console.error("Error details:", {
+                    message: err.message,
+                    response: err.response?.data,
+                    status: err.response?.status
+                });
                 setError("Unable to load recommendations");
                 setRecommendations([]);
             } finally {
