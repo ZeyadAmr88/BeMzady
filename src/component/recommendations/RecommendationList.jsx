@@ -22,7 +22,7 @@ const RecommendationList = ({
             try {
                 let response;
                 if (itemId) {
-                    console.log("Fetching recommendations for item:", itemId);
+                    console.log("⌛Fetching recommendations for item:", itemId);
                     response = await recommendationService.getRecommendationsByItem(itemId);
                 } else if (categoryId) {
                     const categoryIdValue = typeof categoryId === 'object' && categoryId._id ?
@@ -127,9 +127,10 @@ const RecommendationList = ({
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {recommendations.map((item) => (
+                    console.log("🙌",item),
                     <Link
-                        key={item._id}
-                        to={`/item/${item._id}`}
+                            key={item.itemId}
+                        to={`/item/${item.itemId}`}
                         className={`group block rounded-lg overflow-hidden transition-all duration-200 shadow hover:shadow-md ${darkMode
                             ? "bg-gray-800 hover:bg-gray-750"
                             : "bg-white hover:bg-gray-50"

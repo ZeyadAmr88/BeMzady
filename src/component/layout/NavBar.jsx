@@ -78,18 +78,7 @@ const Navbar = () => {
       setLoading(true);
       try {
         // Attempt to get hierarchical data
-        try {
-          const hierarchyResponse = await categoryService.getCategoriesWithSubcategories();
-          if (hierarchyResponse.data && hierarchyResponse.data.data) {
-            setCategoriesWithSubs(hierarchyResponse.data.data);
-            console.log("Got hierarchical categories:", hierarchyResponse.data.data);
-            setError(null);
-            setLoading(false);
-            return;
-          }
-        } catch (hierarchyError) {
-          console.warn("Hierarchical categories endpoint failed, falling back to standard method", hierarchyError);
-        }
+        
 
         // Fallback: Get categories first
         const categoryResponse = await categoryService.getCategories({
@@ -268,7 +257,7 @@ const Navbar = () => {
                           <div key={category._id} className="relative">
                             {/* Category title */}
                             <Link
-                              to={`/auctions?category=${category._id}`}
+                              to={`/items?category=${category._id}`}
                               className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${darkMode
                                 ? "hover:bg-gray-700/50 text-gray-300"
                                 : "hover:bg-gray-100/50 text-gray-600"

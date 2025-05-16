@@ -19,6 +19,19 @@ const ItemReviews = ({ itemId }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const { user } = useContext(AuthContext)
 
+    const getUserReview = (reviewsData) => {
+        if (!user) return null;
+
+        // Find review by username
+        const userReview = reviewsData.find(review =>
+            review.user &&
+            (review.user.username === user.username ||
+                review.user.name === user.username)
+        );
+
+        return userReview || null;
+    };
+
     useEffect(() => {
         const fetchReviews = async () => {
             try {
@@ -26,23 +39,19 @@ const ItemReviews = ({ itemId }) => {
                 const reviewsData = response.data.data || []
                 setReviews(reviewsData)
 
-                // Check if the current user has already reviewed this item
-                if (user) {
-                    const existingReview = reviewsData.find((review) =>
-                        (review.user && review.user._id === user._id) ||
-                        (review.user && review.user.id === user._id)
-                    )
-                    if (existingReview) {
-                        setUserReview(existingReview)
-                        setRating(existingReview.rating)
-                        setComment(existingReview.comment)
-                    } else {
-                        // Reset user review states if no review found
-                        setUserReview(null)
-                        setRating(0)
-                        setComment("")
-                        setIsEditing(false)
-                    }
+                // Get current user's review
+                const currentUserReview = getUserReview(reviewsData);
+
+                if (currentUserReview) {
+                    setUserReview(currentUserReview)
+                    setRating(currentUserReview.rating)
+                    setComment(currentUserReview.comment)
+                } else {
+                    // Reset user review states if no review found
+                    setUserReview(null)
+                    setRating(0)
+                    setComment("")
+                    setIsEditing(false)
                 }
             } catch (error) {
                 console.error("Error fetching reviews:", error)
@@ -129,8 +138,8 @@ const ItemReviews = ({ itemId }) => {
 
             // Remove user review from list and reset states
             setReviews(reviews.filter((review) =>
-                review.user._id !== user._id &&
-                (review.user && review.user.id !== user._id)
+                review.user.username !== user.username &&
+                (review.user && review.user.username !== user.username)
             ))
             setUserReview(null)
             setRating(0)
@@ -198,6 +207,10 @@ const ItemReviews = ({ itemId }) => {
             </div>
         )
     }
+
+    console.log("🙌r", userReview);
+    console.log("🙌u", user);
+    console.log("🙌e", isEditing);
 
     return (
         <div>
@@ -278,7 +291,11 @@ const ItemReviews = ({ itemId }) => {
                         <h3 className="text-lg font-medium dark:text-white">Your Review</h3>
                         <div className="flex space-x-2">
                             <button
-                                onClick={() => setIsEditing(true)}
+                                onClick={() => {
+                                    setIsEditing(true);
+                                    setRating(userReview?.rating);
+                                    setComment(userReview?.comment);
+                                }}
                                 className="text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors"
                                 aria-label="Edit review"
                             >
@@ -298,16 +315,16 @@ const ItemReviews = ({ itemId }) => {
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={`user-review-star-${star}`}
-                                fill={star <= userReview.rating ? "currentColor" : "none"}
-                                className={star <= userReview.rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
+                                fill={star <= userReview?.rating ? "currentColor" : "none"}
+                                className={star <= userReview?.rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
                                 size={18}
                             />
                         ))}
                     </div>
 
-                    <p className="text-gray-700 dark:text-gray-300">{userReview.comment}</p>
+                    <p className="text-gray-700 dark:text-gray-300">{userReview?.comment}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        {formatDistanceToNow(new Date(userReview.updatedAt || userReview.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(userReview?.updatedAt || userReview?.createdAt), { addSuffix: true })}
                     </p>
                 </div>
             )}
@@ -323,42 +340,75 @@ const ItemReviews = ({ itemId }) => {
                         {reviews.length === 1 ? "1 Review" : `${reviews.length} Reviews`}
                     </h3>
 
-                    {reviews
-                        .filter((review) => !user || review.user._id !== user._id)
-                        .map((review) => (
+                    {reviews.map((review) => {
+                        // Skip if this is the current user's review and we're already showing it in the user review section
+                        if (user && (review.user._id === user._id || review.user.id === user._id) && userReview) {
+                            return null;
+                        }
+
+                        return (
                             <div key={review._id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
-                                <div className="flex items-center mb-2">
-                                    {review.user.user_picture ? (
-                                        <img
-                                            src={review.user.user_picture || "/placeholder.svg"}
-                                            alt={review.user.username}
-                                            className="w-8 h-8 rounded-full mr-3"
-                                        />
-                                    ) : (
-                                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mr-3">
-                                            <User size={16} className="text-gray-500 dark:text-gray-400" />
-                                        </div>
-                                    )}
-                                    <div>
-                                        <p className="font-medium dark:text-white">{review.user.username}</p>
-                                        <div className="flex">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star
-                                                    key={`review-star-${review._id}-${star}`}
-                                                    fill={star <= review.rating ? "currentColor" : "none"}
-                                                    className={star <= review.rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
-                                                    size={16}
-                                                />
-                                            ))}
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center">
+                                        {review.user.user_picture ? (
+                                            <img
+                                                src={review.user.user_picture || "/placeholder.svg"}
+                                                alt={review.user.username}
+                                                className="w-8 h-8 rounded-full mr-3"
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mr-3">
+                                                <User size={16} className="text-gray-500 dark:text-gray-400" />
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="font-medium dark:text-white">{review.user.username}</p>
+                                            <div className="flex">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star
+                                                        key={`review-star-${review._id}-${star}`}
+                                                        fill={star <= review.rating ? "currentColor" : "none"}
+                                                        className={star <= review.rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
+                                                        size={16}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                    <p className="ml-auto text-sm text-gray-500 dark:text-gray-400">
+                                    {user && (review.user._id === user._id || review.user.id === user._id) && (
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => {
+                                                    setUserReview(review);
+                                                    setIsEditing(true);
+                                                    setRating(review.rating);
+                                                    setComment(review.comment);
+                                                }}
+                                                className="text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-500 transition-colors"
+                                                aria-label="Edit review"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setUserReview(review);
+                                                    setShowDeleteConfirm(true);
+                                                }}
+                                                className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors"
+                                                aria-label="Delete review"
+                                            >
+                                                <Trash size={18} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
                                         {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
                                     </p>
                                 </div>
                                 <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
                             </div>
-                        ))}
+                        );
+                    })}
                 </div>
             )}
 
