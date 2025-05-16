@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast"
 import { ThemeContext } from "../contexts/ThemeContext"
 import { AuthContext } from "../contexts/AuthContext"
 import { NotificationContext } from "../contexts/NotificationContext"
-import Navbar from "../layout/NabBar"
+import Navbar from "./NavBar"
 import Footer from "../layout/Footer"
 
 const Layout = ({ children }) => {

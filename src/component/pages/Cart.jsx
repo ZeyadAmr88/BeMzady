@@ -1,18 +1,24 @@
 "use client"
 
 import React, { useState, useEffect, useContext } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { ShoppingCart, AlertCircle, ArrowRight, Loader } from 'lucide-react'
 import { cartService } from "../services/api"
-import { ShoppingCart, ArrowRight, AlertCircle, Loader } from 'lucide-react'
-import CartItem from "../cart/CartItem"
 import { AuthContext } from "../contexts/AuthContext"
+import { CartContext } from "../contexts/CartContext"
+import { toast } from "react-hot-toast"
+import { checkStripeRedirect, redirectToStripePayment } from "../utils/stripeHandler"
+import CartItem from "../cart/CartItem"
 
 const Cart = () => {
     const { user } = useContext(AuthContext)
-    const [cartItems, setCartItems] = useState([])
+    const { cartItems, loading: cartLoading, fetchCart, removeFromCart: removeCartItem, clearCart: clearCartItems } = useContext(CartContext)
+    // eslint-disable-next-line no-unused-vars
+    const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [updating, setUpdating] = useState(false)
+    const [checkingOut, setCheckingOut] = useState(false)
     const [cartSummary, setCartSummary] = useState({
         subtotal: 0,
         shipping: 0,
@@ -20,11 +26,35 @@ const Cart = () => {
         total: 0
     })
 
+    // Only fetch cart data once when component mounts
     useEffect(() => {
-        if (user) {
-            fetchCart()
+        const loadCart = async () => {
+            try {
+                // Check if user is coming back from Stripe checkout
+                if (checkStripeRedirect()) {
+                    return; // The utility will handle the redirect
+                }
+
+                // Proceed with normal cart loading
+                if (user) {
+                    await fetchCart()
+                }
+            } catch (err) {
+                setError(err.message || "Failed to load cart data")
+            } finally {
+                setLoading(false)
+            }
         }
-    }, [user])
+
+        loadCart()
+    }, [user, fetchCart])
+
+    // Update loading state based on cartContext loading
+    useEffect(() => {
+        if (!cartLoading) {
+            setLoading(false);
+        }
+    }, [cartLoading]);
 
     useEffect(() => {
         // Calculate cart summary whenever cartItems changes
@@ -70,41 +100,6 @@ const Cart = () => {
         });
     }, [cartItems])
 
-    const fetchCart = async () => {
-        try {
-            setLoading(true)
-            const response = await cartService.getCart()
-            console.log("Cart response:", response.data)
-
-            // Handle the cart data structure
-            let items = []
-            if (response.data && response.data.data) {
-                // Check if the response has an items array (new structure)
-                if (response.data.data.items && Array.isArray(response.data.data.items)) {
-                    items = response.data.data.items
-                    console.log("Cart items from nested structure:", items)
-                } else if (Array.isArray(response.data.data)) {
-                    // Fallback to old structure
-                    items = response.data.data
-                }
-
-                // Log the first item for debugging
-                if (items.length > 0) {
-                    console.log("First cart item:", items[0])
-                }
-            }
-
-            setCartItems(items)
-            setError(null)
-        } catch (error) {
-            console.error("Error fetching cart:", error)
-            setError("Failed to load your cart. Please try again.")
-            setCartItems([])
-        } finally {
-            setLoading(false)
-        }
-    }
-
     const handleUpdateQuantity = async (itemId, newQuantity) => {
         if (newQuantity < 1) return
 
@@ -119,6 +114,7 @@ const Cart = () => {
             if (!cartItem) {
                 console.error("Item not found in cart:", itemId);
                 setError("Item not found in cart");
+                toast.error("Item not found in cart");
                 setUpdating(false);
                 return;
             }
@@ -132,35 +128,33 @@ const Cart = () => {
 
             // Remove item if quantity is 0
             if (validQuantity <= 0) {
-                await cartService.removeFromCart(actualItemId);
-                console.log(`Removed item ${actualItemId} from cart`);
-            } else {
-                // First remove the item, then add with new quantity
-                await cartService.removeFromCart(actualItemId);
-                console.log(`Removed item ${actualItemId} from cart before updating`);
-
-                await cartService.addToCart(actualItemId, validQuantity);
-                console.log(`Added item ${actualItemId} with quantity ${validQuantity}`);
-            }
-
-            // Update local state
-            setCartItems(prevItems => {
-                if (validQuantity <= 0) {
-                    return prevItems.filter(item =>
-                        (item._id !== itemId) && (item.item?._id !== itemId)
-                    );
-                } else {
-                    return prevItems.map(item => {
-                        if (item._id === itemId || (item.item && item.item._id === itemId)) {
-                            return { ...item, quantity: validQuantity };
-                        }
-                        return item;
-                    });
+                const success = await removeCartItem(actualItemId);
+                if (success) {
+                    console.log(`Removed item ${actualItemId} from cart`);
+                    toast.success("Item removed from cart");
                 }
-            });
+            } else {
+                // For quantity updates, we use the direct service call
+                // First remove the item, then add with new quantity
+                await removeCartItem(actualItemId);
+
+                try {
+                    // Use the direct API call for adding with new quantity
+                    await cartService.addToCart(actualItemId, validQuantity);
+                    console.log(`Added item ${actualItemId} with quantity ${validQuantity}`);
+                    toast.success(`Updated quantity to ${validQuantity}`);
+
+                    // Refresh cart to update UI - using the context's fetchCart
+                    await fetchCart();
+                } catch (addError) {
+                    console.error("Error adding item with new quantity:", addError);
+                    toast.error("Failed to update quantity");
+                }
+            }
         } catch (error) {
             console.error("Error updating cart:", error)
             setError("Failed to update cart. Please try again.")
+            toast.error("Failed to update cart. Please try again.")
         } finally {
             setUpdating(false)
         }
@@ -178,6 +172,7 @@ const Cart = () => {
             if (!cartItem) {
                 console.error("Item not found in cart:", itemId);
                 setError("Item not found in cart");
+                toast.error("Item not found in cart");
                 setUpdating(false);
                 return;
             }
@@ -185,15 +180,14 @@ const Cart = () => {
             // Get the actual item ID from the nested structure
             const actualItemId = cartItem.item?._id || itemId;
 
-            await cartService.removeFromCart(actualItemId)
-
-            // Update local state
-            setCartItems(prevItems => prevItems.filter(item =>
-                (item._id !== itemId) && (item.item?._id !== itemId)
-            ))
+            const success = await removeCartItem(actualItemId);
+            if (success) {
+                toast.success("Item removed from cart");
+            }
         } catch (error) {
             console.error("Error removing item from cart:", error)
             setError("Failed to remove item. Please try again.")
+            toast.error("Failed to remove item. Please try again.")
         } finally {
             setUpdating(false)
         }
@@ -202,13 +196,74 @@ const Cart = () => {
     const handleClearCart = async () => {
         try {
             setUpdating(true)
-            await cartService.clearCart()
-            setCartItems([])
+            const success = await clearCartItems();
+            if (success) {
+                toast.success("Cart cleared successfully");
+            }
         } catch (error) {
             console.error("Error clearing cart:", error)
             setError("Failed to clear cart. Please try again.")
+            toast.error("Failed to clear cart. Please try again.")
         } finally {
             setUpdating(false)
+        }
+    }
+
+    const handleCheckout = async () => {
+        if (cartItems.length === 0) {
+            toast.error("Your cart is empty")
+            return
+        }
+
+        try {
+            setCheckingOut(true)
+            console.log("Starting checkout process...")
+
+            const response = await cartService.checkout()
+            console.log("Checkout response:", response.data)
+
+            // Show success message
+            toast.success(response.data.message || "Checkout successful")
+
+            // Use our utility to redirect to payment URL
+            if (response.data.paymentUrl) {
+                redirectToStripePayment(response.data.paymentUrl, () => {
+                    console.log("Redirecting to payment URL:", response.data.paymentUrl);
+                });
+            } else {
+                console.warn("No payment URL received in the response")
+                toast.warning("Payment URL not received. Please contact support.")
+            }
+        } catch (error) {
+            console.error("Error during checkout:", error)
+
+            // More detailed error logging
+            if (error.response) {
+                console.error("Response error data:", error.response.data)
+                console.error("Response error status:", error.response.status)
+                console.error("Response error headers:", error.response.headers)
+
+                const errorMsg = error.response.data?.message || "Failed to process checkout. Please try again."
+                toast.error(errorMsg)
+                setError(errorMsg)
+            } else if (error.request) {
+                console.error("No response received:", error.request)
+
+                // Ask user if they want to try direct checkout URL
+                if (confirm("Network error occurred. Would you like to try an alternative checkout method?")) {
+                    // Redirect to a direct checkout URL
+                    window.location.href = "https://be-mazady.vercel.app/api/cart/checkout";
+                } else {
+                    toast.error("Network error. Please check your connection and try again.")
+                    setError("Network error. The server may be unavailable. Please try again later.")
+                }
+            } else {
+                console.error("Error message:", error.message)
+                toast.error(error.message || "An unexpected error occurred")
+                setError(error.message || "An unexpected error occurred")
+            }
+        } finally {
+            setCheckingOut(false)
         }
     }
 
@@ -321,10 +376,18 @@ const Cart = () => {
                             </div>
 
                             <button
-                                className="w-full mt-6 py-3 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors"
-                                disabled={updating}
+                                className="w-full mt-6 py-3 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:bg-rose-400 disabled:cursor-not-allowed"
+                                disabled={updating || checkingOut}
+                                onClick={handleCheckout}
                             >
-                                Proceed to Checkout
+                                {checkingOut ? (
+                                    <span className="flex items-center justify-center">
+                                        <Loader size={20} className="animate-spin mr-2" />
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    "Proceed to Checkout"
+                                )}
                             </button>
                         </div>
                     </div>

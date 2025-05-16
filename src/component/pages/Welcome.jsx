@@ -144,6 +144,12 @@ const Welcome = () => {
                             Join Now
                         </Link>
                     )}
+                    <Link
+                        to="/Home"
+                        className="px-6 py-3 rounded-lg border border-accent-500 text-accent-600 dark:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-500/10 transition-all duration-300" 
+                    >
+                        Home
+                    </Link>
                 </div>
             </div>
         </div>

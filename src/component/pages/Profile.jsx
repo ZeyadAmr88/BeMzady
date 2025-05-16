@@ -1,26 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from "react";
-import { Link, useNavigate, Outlet, useLocation } from "react-router-dom";
-import { AuthContext } from "../contexts/AuthContext";
-import { useToast } from "../contexts/ToastContext";
-import { userService } from "../services/api";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Package,
-  Heart,
-  Gavel,
-  Settings,
-  LogOut,
-  Edit,
-  Camera,
-  Save,
-  X,
-} from "lucide-react";
-import ProfileCompletedAuctions from "./ProfileCompletedAuctions";
+import React, { useState, useEffect, useContext } from "react"
+import { Link, useNavigate, Outlet, useLocation } from "react-router-dom"
+import { AuthContext } from "../contexts/AuthContext"
+import { useToast } from "../contexts/ToastContext"
+import { userService } from "../services/api"
+import { User, Mail, Phone, MapPin, Package, Heart, Gavel, Settings, LogOut, Edit, Camera, Save, X, BarChart2 } from 'lucide-react'
+import ProfileCompletedAuctions from "./ProfileCompletedAuctions"
+import SellerDashboard from "./SellerDashboard"
 
 const Profile = () => {
   const { user, logout } = useContext(AuthContext);
@@ -212,6 +199,8 @@ const Profile = () => {
             </div>
 
             <nav className="space-y-1">
+
+
               <button
                 onClick={() => setActiveTab("info")}
                 className={`w-full flex items-center px-4 py-2 rounded-md ${
@@ -223,14 +212,22 @@ const Profile = () => {
                 <User size={18} className="mr-3" />
                 <span>Personal Information</span>
               </button>
-
+              <button
+                onClick={() => setActiveTab("dashboard")}
+                className={`w-full flex items-center px-4 py-2 rounded-md ${activeTab === "dashboard"
+                  ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+              >
+                <BarChart2 size={18} className="mr-3" />
+                <span>Dashboard</span>
+              </button>
               <button
                 onClick={() => setActiveTab("security")}
-                className={`w-full flex items-center px-4 py-2 rounded-md ${
-                  activeTab === "security"
-                    ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
+                className={`w-full flex items-center px-4 py-2 rounded-md ${activeTab === "security"
+                  ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
               >
                 <Settings size={18} className="mr-3" />
                 <span>Security</span>
@@ -303,6 +300,9 @@ const Profile = () => {
             </div>
           ) : (
             <>
+              {/* Dashboard Tab */}
+              {activeTab === "dashboard" && <SellerDashboard />}
+
               {/* Personal Information Tab */}
               {activeTab === "info" && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
@@ -369,28 +369,7 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                            Address
-                          </h3>
-                          {profileData.address ? (
-                            <div>
-                              <p>{profileData.address}</p>
-                              <p>
-                                {profileData.city}, {profileData.country}
-                              </p>
-                            </div>
-                          ) : (
-                            <p>No address provided</p>
-                          )}
-                        </div>
 
-                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                            Bio
-                          </h3>
-                          <p>{profileData.bio || "No bio provided"}</p>
-                        </div>
                       </div>
                     ) : (
                       <form onSubmit={handleUpdateProfile}>

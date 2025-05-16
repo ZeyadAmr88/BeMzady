@@ -65,9 +65,10 @@ export const AuthProvider = ({ children }) => {
             const response = await api.post("/Auth/login", { email, password })
             const { token, data } = response.data
 
-            // Store token in localStorage (always needed for authentication)
+            // Store token and user data in localStorage
             localStorage.setItem("token", token)
             localStorage.setItem("user_id", data?.id)
+            localStorage.setItem("user", JSON.stringify(data))
 
             // If remember me is checked, store a flag to indicate persistent login
             if (rememberMe) {
@@ -114,6 +115,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem("token")
         localStorage.removeItem("user_id")
+        localStorage.removeItem("user")
         localStorage.removeItem("persistentLogin")
         sessionStorage.removeItem("activeSession")
         // Don't remove rememberedEmail to keep the email field pre-filled

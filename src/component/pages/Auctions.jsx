@@ -130,7 +130,6 @@ const Auctions = () => {
         setFilters((prev) => ({
             ...prev,
             [name]: value,
-            // Reset page when changing filters
             ...(name !== "page" && { page: 1 }),
         }))
     }
@@ -158,7 +157,6 @@ const Auctions = () => {
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Explore Auctions</h1>
 
-            {/* Search and Filter Bar */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <form onSubmit={handleSearch} className="flex-1">
                     <div className="relative">
