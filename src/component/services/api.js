@@ -242,21 +242,23 @@ export const messageService = {
         return { data: { data: [] } };
       });
   },
-  
+  getMessages: (conversationId) => api.get(`/messages/conversations/${conversationId}`),
   sendMessage: (recipientId, content) => {
     if (!recipientId || !content) {
       console.error("Missing recipientId or content.");
-      return Promise.reject(new Error("Both recipientId and content are required."));
+      return Promise.reject(
+        new Error("Both recipientId and content are required.")
+      );
     }
-  
+
     const payload = {
       recipientId: recipientId,
       content: content,
     };
-  
+
     console.log("Sending message to:", recipientId);
     console.log("Message payload:", payload);
-  
+
     return api
       .post("/messages/", payload)
       .then((response) => {
@@ -269,7 +271,6 @@ export const messageService = {
         return Promise.reject(error);
       });
   },
-  
 
   createConversation: (recipientId) => {
     console.log("Creating conversation with:", recipientId);

@@ -98,11 +98,10 @@ const Conversation = () => {
           conversation = firstMessage.conversation;
         } else {
           const senderInfo = firstMessage.sender || {};
-          const recipientId = firstMessage.recipient;
-          const recipientInfo = recipientId ? { _id: recipientId } : {};
+          const recipientInfo = firstMessage.recipient;
   
           console.log("🖊️senderInfo:", senderInfo);
-          console.log("🖊️recipientId:", recipientId);
+          console.log("🖊️recipientInfo:", recipientInfo);
   
           const potentialParticipants = [senderInfo, recipientInfo].filter(
             (p) => p && p._id
