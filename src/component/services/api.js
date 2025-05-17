@@ -246,19 +246,49 @@ export const messageService = {
                         }
                     }
 
-                    // If data is already an array, wrap it
-                    if (Array.isArray(response.data)) {
-                        return { data: { data: response.data } };
-                    }
-                }
-                return response;
-            })
-            .catch((error) => {
-                console.error("Error in getConversations:", error);
-                // Return empty array for consistent handling
-                return { data: { data: [] } };
-            });
-    },
+          // If data is already an array, wrap it
+          if (Array.isArray(response.data)) {
+            return { data: { data: response.data } };
+          }
+        }
+        return response;
+      })
+      .catch((error) => {
+        console.error("Error in getConversations:", error);
+        // Return empty array for consistent handling
+        return { data: { data: [] } };
+      });
+  },
+  getMessages: (conversationId) => api.get(`/messages/conversations/${conversationId}`),
+  sendMessage: (recipientId, content) => {
+    if (!recipientId || !content) {
+      console.error("Missing recipientId or content.");
+      return Promise.reject(
+        new Error("Both recipientId and content are required.")
+      );
+    }
+
+    const payload = {
+      recipientId: recipientId,
+      content: content,
+    };
+
+    console.log("Sending message to:", recipientId);
+    console.log("Message payload:", payload);
+
+    return api
+      .post("/messages/", payload)
+      .then((response) => {
+        console.log("✅ Message sent successfully:", response.data);
+        return response;
+      })
+      .catch((error) => {
+        const errData = error.response?.data || error.message;
+        console.error("❌ Error sending message:", errData);
+        return Promise.reject(error);
+      });
+  },
+
 
     sendMessage: (recipientId, content) => {
         if (!recipientId || !content) {
