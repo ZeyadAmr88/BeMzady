@@ -20,15 +20,21 @@ const RelatedAuctions = ({ categoryId, currentAuctionId }) => {
                 const response = await auctionService.getAuctionsByCategory(categoryId, {
                     limit: 4,
                     status: "active",
+                    exclude: currentAuctionId // Exclude the current auction from results
                 })
 
-                // Filter out the current auction
+                // Filter out the current auction if it's still in the results
                 const filteredAuctions = response.data.data.filter((auction) => auction._id !== currentAuctionId)
 
                 // Only show up to 4 related auctions
                 setAuctions(filteredAuctions.slice(0, 4))
             } catch (error) {
                 console.error("Error fetching related auctions:", error)
+                console.error("Error details:", {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                })
             } finally {
                 setLoading(false)
             }

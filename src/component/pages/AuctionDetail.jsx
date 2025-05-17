@@ -1,54 +1,60 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from "react";
-import { useParams, Link } from "react-router-dom";
-import { auctionService, userService } from "../services/api";
-import { AuthContext } from "../contexts/AuthContext";
-import {
-  Clock,
-  Heart,
-  Share2,
-  Flag,
-  User,
-  DollarSign,
-  Tag,
-  Calendar,
-  MessageCircle,
-  Mail,
-  Phone,
-  MapPin,
-} from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
-import BidHistory from "../auctions/BidHistory";
-import ItemReviews from "../items/ItemReviews";
-import RelatedAuctions from "../auctions/RelatedAuctions";
-import { toast } from "react-hot-toast";
+import React, { useState, useEffect, useContext } from "react"
+import { useParams, Link, useNavigate } from "react-router-dom"
+import { auctionService, userService } from "../services/api"
+import { AuthContext } from "../contexts/AuthContext"
+import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCircle, Mail, Phone, MapPin } from "lucide-react"
+import { formatDistanceToNow, format } from "date-fns"
+import BidHistory from "../auctions/BidHistory"
+import ItemReviews from "../items/ItemReviews"
+import RelatedAuctions from "../auctions/RelatedAuctions"
+import { toast } from "react-hot-toast"
 import ContactButton from "../messages/ContactButton";
+import { checkStripeRedirect, redirectToStripePayment } from "../utils/stripeHandler"
 
 const AuctionDetail = () => {
-  const { id } = useParams();
-  const { user } = useContext(AuthContext);
-  const [auction, setAuction] = useState(null);
-  const [sellerInfo, setSellerInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { id } = useParams()
+  const navigate = useNavigate()
+  // const { user } = useContext(AuthContext)
+  const [auction, setAuction] = useState(null)
+  const [sellerInfo, setSellerInfo] = useState(null)
+  const [loading, setLoading] = useState(true)
   // eslint-disable-next-line no-unused-vars
-  const [sellerLoading, setSellerLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [bidAmount, setBidAmount] = useState("");
-  const [bidError, setBidError] = useState("");
-  const [bidSuccess, setBidSuccess] = useState("");
-  const [timeLeft, setTimeLeft] = useState("");
-  const [activeTab, setActiveTab] = useState("details");
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [isUserSeller, setIsUserSeller] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [bidAmount, setBidAmount] = useState("")
+  const [bidError, setBidError] = useState("")
+  const [bidSuccess, setBidSuccess] = useState("")
+  const [timeLeft, setTimeLeft] = useState("")
+  const [activeTab, setActiveTab] = useState("details")
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [isUserSeller, setIsUserSeller] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [buyNowLoading, setBuyNowLoading] = useState(false)
+  // eslint-disable-next-line no-unused-vars
+  const [bids, setBids] = useState([])
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
+    // Get user data from localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      const userData = JSON.parse(localStorage.getItem("user"));
+      setUser(userData);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check if user is coming back from Stripe checkout
+    if (checkStripeRedirect()) {
+      return; // The utility will handle the redirect
+    }
     const fetchAuction = async () => {
       try {
-        const response = await auctionService.getAuctionById(id);
-        const auctionData = response.data.data;
-        setAuction(auctionData);
+        const response = await auctionService.getAuctionById(id)
+        const auctionData = response.data.data
+        setAuction(auctionData)
 
         // Set initial bid amount to current price + minimum increment
         const currentPrice = auctionData.currentPrice || auctionData.startPrice;
@@ -62,30 +68,53 @@ const AuctionDetail = () => {
 
         // Fetch seller information
         if (auctionData.seller) {
-          setSellerLoading(true);
+          setSellerLoading(true)
           try {
-            const sellerResponse = await userService.getUserById(
-              auctionData.seller
-            );
-            setSellerInfo(sellerResponse.data.data);
-            console.log("Seller info:", sellerResponse.data.data);
+            const sellerResponse = await userService.getUserById(auctionData.seller)
+            setSellerInfo(sellerResponse.data.data)
+            console.log("Seller info:", sellerResponse.data.data)
           } catch (sellerError) {
-            console.error("Error fetching seller information:", sellerError);
-            toast.error("Failed to load seller information");
+            console.error("Error fetching seller information:", sellerError)
+            toast.error("Failed to load seller information")
           } finally {
-            setSellerLoading(false);
+            setSellerLoading(false)
           }
         }
-      } catch (error) {
-        console.error("Error fetching auction:", error);
-        setError("Failed to load auction details. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchAuction();
-  }, [id, user]);
+        // Check if auction is in user's favorites if logged in
+        if (user) {
+          await checkIfFavorite()
+        }
+
+        // Get bids from auction data
+        setBids(auctionData.bids || [])
+      } catch (err) {
+        console.error("Error fetching auction:", err)
+        setError("Failed to load auction details. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAuction()
+  }, [id, user])
+
+  // Check if auction is in user's favorites
+  const checkIfFavorite = async () => {
+    if (!user || !auction) return false;
+
+    try {
+      const response = await userService.getFavorites()
+      const favorites = response.data.data || []
+      // Check if this auction's item is in favorites
+      const isFav = favorites.some(fav => fav._id === auction._id)
+      setIsFavorite(isFav)
+      return isFav
+    } catch (error) {
+      console.error("Error checking favorites:", error)
+      return false
+    }
+  }
 
   useEffect(() => {
     if (!auction) return;
@@ -224,6 +253,44 @@ const AuctionDetail = () => {
     }
   };
 
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+
+    if (!user) {
+      toast.error("Please log in to place a bid");
+      navigate("/login");
+      return;
+    }
+
+    // Prevent seller from buying their own auction
+    if (isUserSeller) {
+      toast.error("You cannot buy your own auction");
+      return;
+    }
+
+    try {
+      setBuyNowLoading(true);
+      const response = await auctionService.buyNow(auction._id);
+      console.log("Buy now response:", response.data);
+
+      // Show success message
+      toast.success(response.data.message || "Auction purchased successfully");
+
+      // Use our utility to redirect to payment URL
+      if (response.data.paymentUrl) {
+        redirectToStripePayment(response.data.paymentUrl);
+      } else {
+        toast.warning("Payment URL not received. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error buying now:", error);
+      const errorMsg = error.response?.data?.message || "Failed to complete purchase. Please try again.";
+      toast.error(errorMsg);
+    } finally {
+      setBuyNowLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -278,11 +345,10 @@ const AuctionDetail = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`w-12 h-12 sm:w-16 sm:h-16 rounded-md overflow-hidden flex-shrink-0 border-2 ${
-                      selectedImage === index
-                        ? "border-rose-600"
-                        : "border-transparent"
-                    }`}
+                    className={`w-12 h-12 sm:w-16 sm:h-16 rounded-md overflow-hidden flex-shrink-0 border-2 ${selectedImage === index
+                      ? "border-rose-600"
+                      : "border-transparent"
+                      }`}
                   >
                     <img
                       src={image || "/placeholder.svg"}
@@ -301,31 +367,28 @@ const AuctionDetail = () => {
               <nav className="flex space-x-2 sm:space-x-8">
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${
-                    activeTab === "details"
-                      ? "border-rose-600 text-rose-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  }`}
+                  className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "details"
+                    ? "border-rose-600 text-rose-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    }`}
                 >
                   Item Details
                 </button>
                 <button
                   onClick={() => setActiveTab("bids")}
-                  className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${
-                    activeTab === "bids"
-                      ? "border-rose-600 text-rose-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  }`}
+                  className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "bids"
+                    ? "border-rose-600 text-rose-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    }`}
                 >
                   Bid History
                 </button>
                 <button
                   onClick={() => setActiveTab("reviews")}
-                  className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${
-                    activeTab === "reviews"
-                      ? "border-rose-600 text-rose-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  }`}
+                  className={`py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm ${activeTab === "reviews"
+                    ? "border-rose-600 text-rose-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    }`}
                 >
                   Reviews
                 </button>
@@ -429,9 +492,7 @@ const AuctionDetail = () => {
                 </div>
               )}
 
-              {activeTab === "bids" && <BidHistory auctionId={auction._id} />}
-
-              {activeTab === "reviews" && <ItemReviews itemId={auction._id} />}
+              {activeTab === "bids" && <BidHistory bids={bids} />}
             </div>
           </div>
         </div>
@@ -532,28 +593,27 @@ const AuctionDetail = () => {
                 {auction.buyNowPrice && (
                   <button
                     type="button"
+                    onClick={handleBuyNow}
+                    disabled={buyNowLoading}
                     className="w-full mt-2 sm:mt-3 border border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-700 font-medium py-1.5 sm:py-2 px-3 sm:px-4 rounded-md transition-colors text-sm sm:text-base"
                   >
-                    Buy Now for ${auction.buyNowPrice.toFixed(2)}
+                    {buyNowLoading ? "Processing..." : `Buy Now for $${auction.buyNowPrice.toFixed(2)}`}
                   </button>
                 )}
               </form>
             ) : (
               <div className="text-center py-3 sm:py-4 bg-gray-100 dark:bg-gray-700 rounded-md">
-                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm sm:text-base">
-                  This auction has ended
-                </p>
+                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm sm:text-base">This auction has ended</p>
               </div>
             )}
 
             <div className="flex justify-between mt-4 sm:mt-6">
               <button
                 onClick={toggleFavorite}
-                className={`flex items-center ${
-                  isFavorite
-                    ? "text-rose-600"
-                    : "text-gray-500 dark:text-gray-400"
-                } hover:text-rose-600 dark:hover:text-rose-500 transition-colors`}
+                className={`flex items-center ${isFavorite
+                  ? "text-rose-600"
+                  : "text-gray-500 dark:text-gray-400"
+                  } hover:text-rose-600 dark:hover:text-rose-500 transition-colors`}
               >
                 <Heart
                   size={16}

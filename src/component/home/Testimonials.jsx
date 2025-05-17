@@ -42,7 +42,7 @@ const Testimonials = () => {
                                 <p className="text-gray-600 dark:text-gray-300 italic mb-4 sm:mb-6 text-sm sm:text-base">"{testimonial.quote}"</p>
                             </div>
                             <div className="flex items-center mt-3 sm:mt-4">
-                               
+
                                 <div>
                                     <h4 className="font-bold text-sm sm:text-base">{testimonial.name}</h4>
                                     <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{testimonial.role}</p>

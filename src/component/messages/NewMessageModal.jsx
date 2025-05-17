@@ -172,27 +172,27 @@ const NewMessageModal = ({
       const messageContent = message.trim();
 
 
-        // Try one more time with direct message if there was any error
-        try {
-          console.log("Trying fallback direct message to:", selectedUser._id);
-          const directResponse = await messageService.sendMessage(
-            selectedUser._id,
-            messageContent
-          );
-          console.log("Direct message response:", directResponse);
-          
+      // Try one more time with direct message if there was any error
+      try {
+        console.log("Trying fallback direct message to:", selectedUser._id);
+        const directResponse = await messageService.sendMessage(
+          selectedUser._id,
+          messageContent
+        );
+        console.log("Direct message response:", directResponse);
 
-          if (directResponse.status >= 200 && directResponse.status < 300) {
-            onMessageSent?.(selectedUser._id);
-            resetForm();
-            onClose();
-            return;
-          }
-        } catch (finalError) {
-          console.error("All message sending approaches failed:", finalError);
-          throw finalError;
+
+        if (directResponse.status >= 200 && directResponse.status < 300) {
+          onMessageSent?.(selectedUser._id);
+          resetForm();
+          onClose();
+          return;
         }
-      
+      } catch (finalError) {
+        console.error("All message sending approaches failed:", finalError);
+        throw finalError;
+      }
+
 
       // If we get here, all approaches failed
       throw new Error("All message sending approaches failed");
@@ -228,7 +228,7 @@ const NewMessageModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50 p-4">  
+    <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md">
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold">New Message</h2>
@@ -335,7 +335,7 @@ const NewMessageModal = ({
                     onClick={() => setSelectedUser(null)}
                     className="ml-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                   >
-                    
+
                   </button>
                 </div>
               </div>

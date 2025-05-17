@@ -54,21 +54,21 @@ const Conversation = () => {
 
   const fetchMessages = async () => {
     const wasAtBottom = isNearBottom();
-  
+
     try {
       setLoading(true);
       console.log(`Fetching messages for conversation: ${conversationId}`);
-  
+
       const timeoutId = setTimeout(() => {
         console.warn("Message fetch operation taking longer than expected");
       }, 5000);
-  
+
       const response = await messageService.getMessages(conversationId);
       clearTimeout(timeoutId);
       console.log("🖊️response:", response);
-  
+
       let messagesData = [];
-  
+
       if (response && Array.isArray(response)) {
         messagesData = response;
       } else if (response.data && Array.isArray(response.data)) {
@@ -78,26 +78,27 @@ const Conversation = () => {
       } else if (response.data && response.data.messages && Array.isArray(response.data.messages)) {
         messagesData = response.data.messages;
       }
-  
+
       console.log(`Received ${messagesData.length} messages:`, messagesData);
-  
+
       if (messagesData.length > 0 || messages.length === 0) {
         setMessages(messagesData);
       } else {
         console.log("No messages returned, keeping existing messages");
       }
-  
+
       // 🔧 FIXED: Build conversation manually if missing
       let conversation = response.data || {};
-  
+
       if (!conversation.participants && messagesData.length > 0) {
         const firstMessage = messagesData[0];
         console.log("🖊️firstMessage:", firstMessage);
-  
+
         if (firstMessage.conversation) {
           conversation = firstMessage.conversation;
         } else {
           const senderInfo = firstMessage.sender || {};
+
           const recipientInfo = firstMessage.recipient;
   
           console.log("🖊️senderInfo:", senderInfo);
@@ -107,15 +108,15 @@ const Conversation = () => {
             (p) => p && p._id
           );
           console.log("🖊️potentialParticipants:", potentialParticipants);
-  
+
           conversation = {
             participants: potentialParticipants,
           };
         }
       }
-  
+
       console.log("Conversation data:", conversation);
-  
+
       if (!otherUser || (conversation.participants && Array.isArray(conversation.participants))) {
         if (conversation.participants && Array.isArray(conversation.participants)) {
           const other = conversation.participants.find(
@@ -126,7 +127,7 @@ const Conversation = () => {
             setOtherUser(other);
           } else {
             console.warn("Could not find other user in participants");
-  
+
             if (messagesData.length > 0) {
               const userSet = new Set();
               messagesData.forEach((msg) => {
@@ -134,11 +135,11 @@ const Conversation = () => {
                   userSet.add(JSON.stringify(msg.sender));
                 }
                 if (msg.recipient && typeof msg.recipient === "object" &&
-                    msg.recipient._id && msg.recipient._id !== user?._id) {
+                  msg.recipient._id && msg.recipient._id !== user?._id) {
                   userSet.add(JSON.stringify(msg.recipient));
                 }
               });
-  
+
               if (userSet.size === 1) {
                 const otherUserData = JSON.parse(Array.from(userSet)[0]);
                 console.log("Found other user from messages:", otherUserData);
@@ -150,15 +151,15 @@ const Conversation = () => {
           console.warn("No participants found in conversation data");
         }
       }
-  
+
       if (messagesData.length > 0) {
         markMessagesAsRead(messagesData);
       }
-  
+
       if (wasAtBottom) {
         scrollToBottom();
       }
-  
+
       setShowScrollButton(!wasAtBottom);
       setError(null);
     } catch (error) {
@@ -180,7 +181,7 @@ const Conversation = () => {
       setLoading(false);
     }
   };
-  
+
 
   const markMessagesAsRead = async (messagesArray) => {
     try {
@@ -401,9 +402,9 @@ const Conversation = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {otherUser.last_active
                     ? `Last active ${formatDistanceToNow(
-                        new Date(otherUser.last_active),
-                        { addSuffix: true }
-                      )}`
+                      new Date(otherUser.last_active),
+                      { addSuffix: true }
+                    )}`
                     : ""}
                 </p>
               </div>

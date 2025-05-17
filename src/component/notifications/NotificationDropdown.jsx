@@ -72,9 +72,8 @@ const NotificationDropdown = () => {
 
   return (
     <div
-      className={`absolute right-0 mt-2 w-80 rounded-md shadow-lg ${
-        darkMode ? "bg-gray-800" : "bg-white"
-      } ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto`}
+      className={`absolute right-0 mt-2 w-80 rounded-md shadow-lg ${darkMode ? "bg-gray-800" : "bg-white"
+        } ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto`}
     >
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Notifications</h3>
@@ -103,9 +102,8 @@ const NotificationDropdown = () => {
           notifications.slice(0, 5).map((notification) => (
             <div
               key={notification._id}
-              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                !notification.read ? "bg-rose-50 dark:bg-gray-700" : ""
-              }`}
+              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${!notification.read ? "bg-rose-50 dark:bg-gray-700" : ""
+                }`}
             >
               <div className="flex items-start">
                 <div className="flex-shrink-0 mt-1">

@@ -152,10 +152,10 @@ const Categories = () => {
                                             key={1}
                                             onClick={() => setCurrentPage(1)}
                                             className={`w-10 h-10 rounded-md ${currentPage === 1
-                                                    ? "bg-rose-600 text-white"
-                                                    : darkMode
-                                                        ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                                                        : "bg-white text-gray-700 hover:bg-gray-100"
+                                                ? "bg-rose-600 text-white"
+                                                : darkMode
+                                                    ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                                    : "bg-white text-gray-700 hover:bg-gray-100"
                                                 } border ${darkMode
                                                     ? "border-gray-700"
                                                     : "border-gray-200"
@@ -184,10 +184,10 @@ const Categories = () => {
                                                 key={i}
                                                 onClick={() => setCurrentPage(i)}
                                                 className={`w-10 h-10 rounded-md ${currentPage === i
-                                                        ? "bg-rose-600 text-white"
-                                                        : darkMode
-                                                            ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                                                            : "bg-white text-gray-700 hover:bg-gray-100"
+                                                    ? "bg-rose-600 text-white"
+                                                    : darkMode
+                                                        ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                                        : "bg-white text-gray-700 hover:bg-gray-100"
                                                     } border ${darkMode
                                                         ? "border-gray-700"
                                                         : "border-gray-200"
@@ -213,10 +213,10 @@ const Categories = () => {
                                             key={totalPages}
                                             onClick={() => setCurrentPage(totalPages)}
                                             className={`w-10 h-10 rounded-md ${currentPage === totalPages
-                                                    ? "bg-rose-600 text-white"
-                                                    : darkMode
-                                                        ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                                                        : "bg-white text-gray-700 hover:bg-gray-100"
+                                                ? "bg-rose-600 text-white"
+                                                : darkMode
+                                                    ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                                    : "bg-white text-gray-700 hover:bg-gray-100"
                                                 } border ${darkMode
                                                     ? "border-gray-700"
                                                     : "border-gray-200"

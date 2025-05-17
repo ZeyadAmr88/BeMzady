@@ -34,7 +34,6 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, disabled }) => {
     }
 
     const itemCover = cartItem.item_cover || "/placeholder.svg?height=96&width=96";
-    const ownerName = "Unknown seller";
 
     // Calculate item total
     const itemTotal = price * quantity;
@@ -57,9 +56,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, disabled }) => {
                                 {title}
                             </Link>
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                            Seller: {ownerName}
-                        </p>
+                        
                         <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                             {description}
                         </p>
