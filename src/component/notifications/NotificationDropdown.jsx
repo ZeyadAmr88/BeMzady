@@ -20,8 +20,14 @@ const NotificationDropdown = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const data = await getUserNotifications();
-        setNotifications(data);
+        const response = await getUserNotifications();
+        console.log("🔥response", response);
+        // Handle different response structures
+        const notificationsData = response;
+        console.log("🔥notificationsData", notificationsData);
+        setNotifications(
+          Array.isArray(notificationsData) ? notificationsData : []
+        );
       } catch (error) {
         console.error("Error fetching notifications:", error);
       } finally {
@@ -69,15 +75,22 @@ const NotificationDropdown = () => {
         return <Bell size={16} className="text-gray-500" />;
     }
   };
+  console.log("🔥notifications", notifications);
+  // Calculate unread count
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
+  console.log("🔥unreadCount", unreadCount);
 
   return (
     <div
-      className={`absolute right-0 mt-2 w-80 rounded-md shadow-lg ${darkMode ? "bg-gray-800" : "bg-white"
-        } ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto`}
+      className={`absolute right-0 mt-2 w-80 rounded-md shadow-lg ${
+        darkMode ? "bg-gray-800" : "bg-white"
+      } ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto`}
     >
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Notifications</h3>
-        {notifications.some((notification) => !notification.read) && (
+        {unreadCount > 0 && (
           <button
             onClick={handleMarkAllAsRead}
             className="text-xs text-rose-600 hover:text-rose-700 transition-colors"
@@ -99,18 +112,25 @@ const NotificationDropdown = () => {
             <p>No notifications yet</p>
           </div>
         ) : (
-          notifications.slice(0, 5).map((notification) => (
+          notifications.slice(0, 4).map((notification) => (
             <div
               key={notification._id}
-              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${!notification.read ? "bg-rose-50 dark:bg-gray-700" : ""
-                }`}
+              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                !notification.isRead ? "bg-rose-50 dark:bg-gray-700" : ""
+              }`}
             >
               <div className="flex items-start">
                 <div className="flex-shrink-0 mt-1">
                   {getNotificationIcon(notification.type)}
                 </div>
                 <div className="ml-3 flex-1">
-                  <div className="text-sm font-medium">
+                  <div
+                    className={`text-sm ${
+                      !notification.isRead
+                        ? "font-medium text-gray-900 dark:text-gray-100"
+                        : "text-gray-600 dark:text-gray-400"
+                    }`}
+                  >
                     {notification.message}
                   </div>
                   <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex justify-between items-center">
@@ -119,7 +139,7 @@ const NotificationDropdown = () => {
                         addSuffix: true,
                       })}
                     </span>
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <button
                         onClick={() => handleMarkAsRead(notification._id)}
                         className="text-rose-600 hover:text-rose-700 transition-colors"

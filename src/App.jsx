@@ -62,6 +62,7 @@ function App() {
                     <Route path="/items/:id" element={<ItemDetail />} />
                     <Route path="/categories" element={<Categories />} />
                     <Route path="/category/:id" element={<CategoryPage />} />
+                    <Route path="/notifications" element={<Notifications />} />
                     {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                     <Route
                       path="/payment/success"

@@ -1,16 +1,29 @@
 "use client";
 import React from "react";
 
-import { useState, useContext, useEffect, useRef, useMemo } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { ThemeContext } from "../contexts/ThemeContext"
-import { AuthContext } from "../contexts/AuthContext"
-import { NotificationContext } from "../contexts/NotificationContext"
-import { CartContext } from "../contexts/CartContext"
-import { categoryService, subcategoryService } from "../services/api"
-import { Sun, Moon, ShoppingCart, Bell, MessageCircle, User, Menu, X, Search, ChevronRight, ChevronDown } from "lucide-react"
-import NotificationDropdown from "../notifications/NotificationDropdown"
-import MobileMenu from "./MobileMenu"
+import { useState, useContext, useEffect, useRef, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ThemeContext } from "../contexts/ThemeContext";
+import { AuthContext } from "../contexts/AuthContext";
+import { NotificationContext } from "../contexts/NotificationContext";
+import { CartContext } from "../contexts/CartContext";
+import { categoryService, subcategoryService } from "../services/api";
+import {
+  Sun,
+  Moon,
+  ShoppingCart,
+  Bell,
+  MessageCircle,
+  User,
+  Menu,
+  X,
+  Search,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
+import { messageService } from "../services/api";
+import NotificationDropdown from "../notifications/NotificationDropdown";
+import MobileMenu from "./MobileMenu";
 /* Add styles at the top of the component */
 const scrollbarStyles = `
   /* Custom scrollbars for the category menu */
@@ -52,25 +65,26 @@ const scrollbarStyles = `
 `;
 
 const Navbar = () => {
-  const { darkMode, toggleTheme } = useContext(ThemeContext)
-  const { user, logout } = useContext(AuthContext)
-  const { unreadCount } = useContext(NotificationContext)
-  const { cartCount } = useContext(CartContext)
-  const [categories, setCategories] = useState([])
-  const [categoriesWithSubs, setCategoriesWithSubs] = useState([])
-  const [hoveredCategory, setHoveredCategory] = useState(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const { user, logout } = useContext(AuthContext);
+  const { unreadCount } = useContext(NotificationContext);
+  const { cartCount } = useContext(CartContext);
+  const [categories, setCategories] = useState([]);
+  const [categoriesWithSubs, setCategoriesWithSubs] = useState([]);
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-  const navigate = useNavigate()
-  const profileRef = useRef(null)
-  const notificationRef = useRef(null)
-  const categoryMenuRef = useRef(null)
-  const categoryTimeoutRef = useRef(null)
+  const navigate = useNavigate();
+  const profileRef = useRef(null);
+  const notificationRef = useRef(null);
+  const categoryMenuRef = useRef(null);
+  const categoryTimeoutRef = useRef(null);
+  const notificationDropdownRef = useRef(null);
 
   // Fetch all categories and subcategories when component mounts
   useEffect(() => {
@@ -78,12 +92,11 @@ const Navbar = () => {
       setLoading(true);
       try {
         // Attempt to get hierarchical data
-        
 
         // Fallback: Get categories first
         const categoryResponse = await categoryService.getCategories({
           page: 1,
-          limit: 1000
+          limit: 1000,
         });
         const categoriesData = categoryResponse.data.data || [];
         setCategories(categoriesData);
@@ -93,18 +106,22 @@ const Navbar = () => {
 
         for (const category of categoriesData) {
           try {
-            const subResponse = await categoryService.getSubcategoriesByCategory(category._id);
+            const subResponse =
+              await categoryService.getSubcategoriesByCategory(category._id);
             const subcategories = subResponse.data.data || [];
 
             categoriesWithSubcategories.push({
               ...category,
-              subcategories: subcategories
+              subcategories: subcategories,
             });
           } catch (subError) {
-            console.error(`Error fetching subcategories for category ${category.name}:`, subError);
+            console.error(
+              `Error fetching subcategories for category ${category.name}:`,
+              subError
+            );
             categoriesWithSubcategories.push({
               ...category,
-              subcategories: []
+              subcategories: [],
             });
           }
         }
@@ -127,12 +144,17 @@ const Navbar = () => {
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
+      // Check if click is outside notification area
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target) &&
+        notificationDropdownRef.current &&
+        !notificationDropdownRef.current.contains(event.target)
+      ) {
         setIsNotificationsOpen(false);
       }
-      if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target)) {
-        setIsCategoryMenuOpen(false);
-      }
+
+      // Other menu checks...
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -162,6 +184,7 @@ const Navbar = () => {
     const fetchUnreadMessageCount = async () => {
       try {
         const response = await messageService.getUnreadCount();
+        console.log("😀response", response);
         // Handle different response formats safely
         const count =
           response?.data?.data?.count ||
@@ -186,10 +209,13 @@ const Navbar = () => {
   }, [user]);
 
   return (
-    <header className={`sticky top-0 z-50 backdrop-blur-md ${darkMode
-      ? "bg-gray-900/80 border-b border-gray-800"
-      : "bg-white/80 border-b border-gray-200"
-      } shadow-sm`}>
+    <header
+      className={`sticky top-0 z-50 backdrop-blur-md ${
+        darkMode
+          ? "bg-gray-900/80 border-b border-gray-800"
+          : "bg-white/80 border-b border-gray-200"
+      } shadow-sm`}
+    >
       {/* Add scrollbar styles */}
       <style>{scrollbarStyles}</style>
       <div className="container mx-auto px-2 sm:px-4">
@@ -237,10 +263,11 @@ const Navbar = () => {
               </button>
               {isCategoryMenuOpen && (
                 <div
-                  className={`absolute left-0 mt-2 w-64 max-h-[70vh] overflow-y-auto rounded-lg shadow-lg ${darkMode
-                    ? "bg-gray-800/90 backdrop-blur-sm scrollbar-dark"
-                    : "bg-white/90 backdrop-blur-sm scrollbar-light"
-                    } ring-1 ring-black/5 z-50`}
+                  className={`absolute left-0 mt-2 w-64 max-h-[70vh] overflow-y-auto rounded-lg shadow-lg ${
+                    darkMode
+                      ? "bg-gray-800/90 backdrop-blur-sm scrollbar-dark"
+                      : "bg-white/90 backdrop-blur-sm scrollbar-light"
+                  } ring-1 ring-black/5 z-50`}
                 >
                   {loading ? (
                     <div className="flex justify-center items-center p-4">
@@ -251,43 +278,56 @@ const Navbar = () => {
                       {error}
                     </div>
                   ) : (
-                    <div className="py-1" role="menu" aria-orientation="vertical">
+                    <div
+                      className="py-1"
+                      role="menu"
+                      aria-orientation="vertical"
+                    >
                       {categoriesWithSubs.length > 0 ? (
                         categoriesWithSubs.map((category) => (
                           <div key={category._id} className="relative">
                             {/* Category title */}
                             <Link
                               to={`/items?category=${category._id}`}
-                              className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${darkMode
-                                ? "hover:bg-gray-700/50 text-gray-300"
-                                : "hover:bg-gray-100/50 text-gray-600"
-                                }`}
+                              className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                                darkMode
+                                  ? "hover:bg-gray-700/50 text-gray-300"
+                                  : "hover:bg-gray-100/50 text-gray-600"
+                              }`}
                               onClick={() => setIsCategoryMenuOpen(false)}
                             >
                               <span>{category.name}</span>
-                              {category.subcategories && category.subcategories.length > 0 && (
-                                <ChevronRight size={14} className="text-gray-400" />
-                              )}
+                              {category.subcategories &&
+                                category.subcategories.length > 0 && (
+                                  <ChevronRight
+                                    size={14}
+                                    className="text-gray-400"
+                                  />
+                                )}
                             </Link>
 
                             {/* Subcategories */}
-                            {category.subcategories && category.subcategories.length > 0 && (
-                              <div className="pl-4 border-l border-gray-200 dark:border-gray-700 ml-4 mt-1 mb-2">
-                                {category.subcategories.map((subcategory) => (
-                                  <Link
-                                    key={subcategory._id}
-                                    to={`/subcategory/${subcategory.slug}`}
-                                    className={`block px-3 py-1.5 text-xs rounded transition-colors duration-200 ${darkMode
-                                      ? "hover:bg-gray-700/50 text-gray-400"
-                                      : "hover:bg-gray-100/50 text-gray-500"
+                            {category.subcategories &&
+                              category.subcategories.length > 0 && (
+                                <div className="pl-4 border-l border-gray-200 dark:border-gray-700 ml-4 mt-1 mb-2">
+                                  {category.subcategories.map((subcategory) => (
+                                    <Link
+                                      key={subcategory._id}
+                                      to={`/subcategory/${subcategory.slug}`}
+                                      className={`block px-3 py-1.5 text-xs rounded transition-colors duration-200 ${
+                                        darkMode
+                                          ? "hover:bg-gray-700/50 text-gray-400"
+                                          : "hover:bg-gray-100/50 text-gray-500"
                                       }`}
-                                    onClick={() => setIsCategoryMenuOpen(false)}
-                                  >
-                                    {subcategory.name}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
+                                      onClick={() =>
+                                        setIsCategoryMenuOpen(false)
+                                      }
+                                    >
+                                      {subcategory.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
                           </div>
                         ))
                       ) : (
@@ -298,10 +338,11 @@ const Navbar = () => {
                       <Link
                         to="/categories"
                         onClick={() => setIsCategoryMenuOpen(false)}
-                        className={`block px-4 py-2 text-sm font-semibold transition-colors duration-200 ${darkMode
-                          ? "text-rose-400 hover:bg-gray-700/50"
-                          : "text-rose-600 hover:bg-gray-100/50"
-                          }`}
+                        className={`block px-4 py-2 text-sm font-semibold transition-colors duration-200 ${
+                          darkMode
+                            ? "text-rose-400 hover:bg-gray-700/50"
+                            : "text-rose-600 hover:bg-gray-100/50"
+                        }`}
                       >
                         View All Categories
                       </Link>
@@ -319,10 +360,11 @@ const Navbar = () => {
                 <input
                   type="text"
                   placeholder="Search auctions..."
-                  className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${darkMode
+                  className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${
+                    darkMode
                       ? "bg-gray-800/50 border-gray-700 focus:border-rose-500 focus:ring-rose-500/20"
                       : "bg-gray-100/50 border-gray-200 focus:border-rose-500 focus:ring-rose-500/20"
-                    } focus:outline-none focus:ring-2`}
+                  } focus:outline-none focus:ring-2`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -340,10 +382,11 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-200 ${darkMode
+              className={`p-2 rounded-full transition-all duration-200 ${
+                darkMode
                   ? "bg-gray-800/50 hover:bg-gray-700/50 text-amber-400"
                   : "bg-gray-100/50 hover:bg-gray-200/50 text-gray-600"
-                }`}
+              }`}
               aria-label="Toggle theme"
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -353,10 +396,11 @@ const Navbar = () => {
               <>
                 <Link
                   to="/cart"
-                  className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                    ? "hover:bg-gray-700/50 text-gray-300"
-                    : "hover:bg-gray-200/50 text-gray-600"
-                    }`}
+                  className={`relative p-2 rounded-full transition-all duration-200 ${
+                    darkMode
+                      ? "hover:bg-gray-700/50 text-gray-300"
+                      : "hover:bg-gray-200/50 text-gray-600"
+                  }`}
                 >
                   <ShoppingCart size={20} />
                   {cartCount > 0 && (
@@ -369,10 +413,11 @@ const Navbar = () => {
                 <div className="relative" ref={notificationRef}>
                   <button
                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                    className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
+                    className={`relative p-2 rounded-full transition-all duration-200 ${
+                      darkMode
                         ? "hover:bg-gray-700/50 text-gray-300"
                         : "hover:bg-gray-200/50 text-gray-600"
-                      }`}
+                    }`}
                     aria-label="Notifications"
                   >
                     <Bell size={20} />
@@ -382,7 +427,11 @@ const Navbar = () => {
                       </span>
                     )}
                   </button>
-                  {isNotificationsOpen && <NotificationDropdown />}
+                  {isNotificationsOpen && (
+                    <div ref={notificationDropdownRef}>
+                      <NotificationDropdown />
+                    </div>
+                  )}
                 </div>
 
                 <Link
@@ -402,8 +451,9 @@ const Navbar = () => {
                   ref={profileRef}
                 >
                   <button
-                    className={`relative p-2 rounded-full transition-all duration-200 ${darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-200/50"
-                      }`}
+                    className={`relative p-2 rounded-full transition-all duration-200 ${
+                      darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-200/50"
+                    }`}
                     aria-label="User menu"
                   >
                     {user.user_picture ? (
@@ -421,10 +471,11 @@ const Navbar = () => {
                   </button>
                   {/* Dropdown on hover */}
                   <div
-                    className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
+                    className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${
+                      darkMode
                         ? "bg-gray-800/90 backdrop-blur-sm"
                         : "bg-white/90 backdrop-blur-sm"
-                      } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
+                    } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
                   >
                     <div
                       className="py-1"
@@ -441,28 +492,31 @@ const Navbar = () => {
                       </div>
                       <Link
                         to="/profile"
-                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${
+                          darkMode
                             ? "hover:bg-gray-700/50 text-gray-300"
                             : "hover:bg-gray-100/50 text-gray-600"
-                          }`}
+                        }`}
                       >
                         Profile
                       </Link>
                       <Link
                         to="/products/add"
-                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${
+                          darkMode
                             ? "hover:bg-gray-700/50 text-gray-300"
                             : "hover:bg-gray-100/50 text-gray-600"
-                          }`}
+                        }`}
                       >
                         Add Product
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${darkMode
+                        className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
+                          darkMode
                             ? "hover:bg-gray-700/50 text-gray-300"
                             : "hover:bg-gray-100/50 text-gray-600"
-                          }`}
+                        }`}
                       >
                         Sign out
                       </button>
@@ -473,10 +527,11 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${darkMode
+                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${
+                  darkMode
                     ? "hover:bg-primary-700/50 text-primary-300"
                     : "hover:bg-primary-200/50 text-primary-600"
-                  }`}
+                }`}
               >
                 Login
               </Link>
