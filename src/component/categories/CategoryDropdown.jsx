@@ -15,11 +15,18 @@ const CategoryDropdown = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await categoryService.getCategoriesWithSubcategories();
-                setCategories(response.data.data || []);
+                setLoading(true);
+                const response = await categoryService.getCategories({ limit: 100 });
+                console.log("Categories response:", response);
+                if (response.data && response.data.data) {
+                    setCategories(response.data.data);
+                } else {
+                    console.error("Invalid categories response format:", response);
+                    setError("Invalid response format from server");
+                }
             } catch (error) {
                 console.error("Error fetching categories:", error);
-                setError("Failed to load categories");
+                setError(error.response?.data?.message || "Failed to load categories");
             } finally {
                 setLoading(false);
             }
@@ -76,8 +83,8 @@ const CategoryDropdown = () => {
                             <button
                                 onClick={() => handleCategoryClick(category)}
                                 className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${darkMode
-                                        ? "hover:bg-gray-700 text-gray-200"
-                                        : "hover:bg-gray-100 text-gray-700"
+                                    ? "hover:bg-gray-700 text-gray-200"
+                                    : "hover:bg-gray-100 text-gray-700"
                                     }`}
                             >
                                 <span className="flex items-center">
@@ -107,8 +114,8 @@ const CategoryDropdown = () => {
                                             key={subcategory._id}
                                             onClick={() => handleSubcategoryClick(category, subcategory)}
                                             className={`w-full flex items-center px-3 py-2 rounded-md text-sm transition-colors ${darkMode
-                                                    ? "hover:bg-gray-700 text-gray-300"
-                                                    : "hover:bg-gray-100 text-gray-600"
+                                                ? "hover:bg-gray-700 text-gray-300"
+                                                : "hover:bg-gray-100 text-gray-600"
                                                 }`}
                                         >
                                             <ChevronRight size={14} className="mr-1" />

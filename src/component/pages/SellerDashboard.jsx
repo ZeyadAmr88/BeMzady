@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { userService } from "../services/api"
-import { Package, Gavel, DollarSign, TrendingUp, AlertCircle, Star, Tag, Calendar } from "lucide-react"
+import { Package, Gavel, DollarSign, TrendingUp, AlertCircle, Star, Tag, Calendar, Edit, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "react-hot-toast"
 import { AuthContext } from "../contexts/AuthContext"
@@ -14,8 +14,13 @@ const SellerDashboard = () => {
     const [auctions, setAuctions] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const navigate = useNavigate()
     const { user } = useContext(AuthContext)
+    const navigate = useNavigate()
+    const [editingItem, setEditingItem] = useState(null)
+    const [deleteConfirmItem, setDeleteConfirmItem] = useState(null)
+    const [editingAuction, setEditingAuction] = useState(null)
+    const [deleteConfirmAuction, setDeleteConfirmAuction] = useState(null)
+    const [auctionStatus, setAuctionStatus] = useState("all")
 
     useEffect(() => {
         // Check if user is authenticated
@@ -64,7 +69,7 @@ const SellerDashboard = () => {
             const [overviewRes, itemsRes, auctionsRes] = await Promise.all([
                 userService.getSellerOverview(),
                 userService.getSellerItems("available", 1),
-                userService.getSellerAuctions("completed", 1, 5)
+                userService.getSellerAuctions(auctionStatus === "all" ? "" : auctionStatus, 1, 5)
             ])
 
             // Debug logging
@@ -85,7 +90,7 @@ const SellerDashboard = () => {
             setItems(itemsData)
 
             // Set auctions data - check the response structure
-            const auctionsData = auctionsRes.data.data?.auctions || auctionsRes.data.data || []
+            const auctionsData = auctionsRes.data?.auctions || auctionsRes.data.data || []
             console.log('Processed Auctions Data:', auctionsData)
             setAuctions(auctionsData)
 
@@ -99,8 +104,128 @@ const SellerDashboard = () => {
         }
     }
 
-    const handleItemClick = (_id) => {
-        navigate(`/items/${_id}`)
+    // Add useEffect to refetch when auction status changes
+    useEffect(() => {
+        fetchDashboardData()
+    }, [auctionStatus])
+
+    const handleUpdateItem = async (itemId, formData) => {
+        try {
+            setLoading(true)
+            const token = localStorage.getItem("token")
+            const response = await fetch(`https://be-mazady.vercel.app/api/items/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to update item')
+            }
+
+            const data = await response.json()
+            if (data.status === 'success') {
+                toast.success('Item updated successfully')
+                fetchDashboardData() // Refresh the items list
+                setEditingItem(null)
+            }
+        } catch (error) {
+            console.error('Error updating item:', error)
+            toast.error(error.message || 'Failed to update item')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleDeleteItem = async (itemId) => {
+        try {
+            setLoading(true)
+            const token = localStorage.getItem("token")
+            const response = await fetch(`https://be-mazady.vercel.app/api/items/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to delete item')
+            }
+
+            toast.success('Item deleted successfully')
+            fetchDashboardData() // Refresh the items list
+            setDeleteConfirmItem(null)
+        } catch (error) {
+            console.error('Error deleting item:', error)
+            toast.error(error.message || 'Failed to delete item')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleUpdateAuction = async (auctionId, formData) => {
+        try {
+            setLoading(true)
+            const token = localStorage.getItem("token")
+            const response = await fetch(`https://be-mazady.vercel.app/api/auctions/${auctionId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    buyNowPrice: formData.buyNowPrice,
+                    title: formData.title,
+                    endDate: formData.endDate,
+                    status: formData.status
+                })
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.message || 'Failed to update auction')
+            }
+
+            const data = await response.json()
+            if (data.status === 'success') {
+                toast.success('Auction updated successfully')
+                setEditingAuction(null)
+                navigate('/dashboard')
+            }
+        } catch (error) {
+            console.error('Error updating auction:', error)
+            toast.error(error.message || 'Failed to update auction')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleDeleteAuction = async (auctionId) => {
+        try {
+            setLoading(true)
+            const token = localStorage.getItem("token")
+            const response = await fetch(`https://be-mazady.vercel.app/api/auctions/${auctionId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to delete auction')
+            }
+
+            toast.success('Auction deleted successfully')
+            fetchDashboardData() // Refresh the auctions list
+            setDeleteConfirmAuction(null)
+        } catch (error) {
+            console.error('Error deleting auction:', error)
+            toast.error(error.message || 'Failed to delete auction')
+        } finally {
+            setLoading(false)
+        }
     }
 
     if (loading) {
@@ -179,8 +304,7 @@ const SellerDashboard = () => {
                         {items.map((item) => (
                             <div
                                 key={item._id}
-                                onClick={() => handleItemClick(item._id)}
-                                className="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 dark:border-gray-600"
+                                className="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-600"
                             >
                                 <div className="relative">
                                     <img
@@ -225,6 +349,20 @@ const SellerDashboard = () => {
                                             <span>{format(new Date(item.createdAt), "MMM d, yyyy")}</span>
                                         </div>
                                     </div>
+                                    <div className="mt-4 flex justify-end space-x-2">
+                                        <button
+                                            onClick={() => setEditingItem(item)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => setDeleteConfirmItem(item)}
+                                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -232,17 +370,134 @@ const SellerDashboard = () => {
                 </div>
             </div>
 
+            {/* Edit Item Modal */}
+            {editingItem && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold mb-4">Edit Item</h3>
+                        <form onSubmit={(e) => {
+                            e.preventDefault()
+                            const formData = new FormData(e.target)
+                            handleUpdateItem(editingItem._id, formData)
+                        }}>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Title</label>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        defaultValue={editingItem.title}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Price</label>
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        defaultValue={editingItem.price}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Status</label>
+                                    <select
+                                        name="item_status"
+                                        defaultValue={editingItem.item_status}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                    >
+                                        <option value="available">Available</option>
+                                        <option value="sold">Sold</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Cover Image</label>
+                                    <input
+                                        type="file"
+                                        name="item_cover"
+                                        accept="image/*"
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                    />
+                                </div>
+                            </div>
+                            <div className="mt-6 flex justify-end space-x-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingItem(null)}
+                                    className="px-4 py-2 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700"
+                                >
+                                    Update Item
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmItem && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold mb-4">Delete Item</h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            Are you sure you want to delete "{deleteConfirmItem.title}"? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setDeleteConfirmItem(null)}
+                                className="px-4 py-2 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleDeleteItem(deleteConfirmItem._id)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* My Auctions */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-xl font-bold">My Auctions</h2>
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                        <h2 className="text-xl font-bold">My Auctions</h2>
+                        <select
+                            value={auctionStatus}
+                            onChange={(e) => setAuctionStatus(e.target.value)}
+                            className="px-3 py-1.5 border rounded-md text-sm dark:bg-gray-700 dark:border-gray-600"
+                        >
+                            <option value="all">All Auctions</option>
+                            <option value="pending">Pending</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
+                    <Link
+                        to="/auctions/create"
+                        className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors text-sm"
+                    >
+                        Add New Auction
+                    </Link>
                 </div>
                 <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {auctions.map((auction) => (
-                            <Link
+                            <div
                                 key={auction._id}
-                                to={`/auctions/${auction._id}`}
                                 className="block bg-gray-50 dark:bg-gray-700/50 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                             >
                                 <div className="aspect-w-16 aspect-h-9">
@@ -261,12 +516,133 @@ const SellerDashboard = () => {
                                         <span>Ends: {format(new Date(auction.endDate), "MMM d, yyyy")}</span>
                                         <span>{auction.bids?.length || 0} bids</span>
                                     </div>
+                                    <div className="mt-4 flex justify-end space-x-2">
+                                        <button
+                                            onClick={() => setEditingAuction(auction)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => setDeleteConfirmAuction(auction)}
+                                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 </div>
             </div>
+
+            {/* Edit Auction Modal */}
+            {editingAuction && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold mb-4">Edit Auction</h3>
+                        <form onSubmit={(e) => {
+                            e.preventDefault()
+                            const formData = {
+                                title: e.target.title.value,
+                                buyNowPrice: parseFloat(e.target.buyNowPrice.value),
+                                endDate: e.target.endDate.value,
+                                status: e.target.status.value
+                            }
+                            handleUpdateAuction(editingAuction._id, formData)
+                        }}>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Title</label>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        defaultValue={editingAuction.title}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Buy Now Price</label>
+                                    <input
+                                        type="number"
+                                        name="buyNowPrice"
+                                        defaultValue={editingAuction.buyNowPrice}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">End Date</label>
+                                    <input
+                                        type="datetime-local"
+                                        name="endDate"
+                                        defaultValue={format(new Date(editingAuction.endDate), "yyyy-MM-dd'T'HH:mm")}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Status</label>
+                                    <select
+                                        name="status"
+                                        defaultValue={editingAuction.status}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="active">Active</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mt-6 flex justify-end space-x-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingAuction(null)}
+                                    className="px-4 py-2 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700"
+                                >
+                                    Update Auction
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Auction Confirmation Modal */}
+            {deleteConfirmAuction && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold mb-4">Delete Auction</h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            Are you sure you want to delete "{deleteConfirmAuction.title}"? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setDeleteConfirmAuction(null)}
+                                className="px-4 py-2 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleDeleteAuction(deleteConfirmAuction._id)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

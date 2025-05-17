@@ -281,7 +281,6 @@ const CreateAuction = () => {
                                         className={`w-full pl-8 pr-4 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.startPrice ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                                             }`}
                                         min="0"
-                                        step="0.01"
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -302,7 +301,6 @@ const CreateAuction = () => {
                                         className={`w-full pl-8 pr-4 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.reservePrice ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                                             }`}
                                         min="0"
-                                        step="0.01"
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -323,7 +321,6 @@ const CreateAuction = () => {
                                         className={`w-full pl-8 pr-4 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.buyNowPrice ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                                             }`}
                                         min="0"
-                                        step="0.01"
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -346,7 +343,6 @@ const CreateAuction = () => {
                                         className={`w-full pl-8 pr-4 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.minimumBidIncrement ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                                             }`}
                                         min="0"
-                                        step="0.01"
                                         placeholder="0.00"
                                     />
                                 </div>

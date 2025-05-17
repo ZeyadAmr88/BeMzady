@@ -216,11 +216,14 @@ const AuctionDetail = () => {
       bidValue = adjustedBidValue;
       // Update the bid amount in the input field
       setBidAmount(bidValue.toString());
-      toast.info(
-        `Your bid has been adjusted to $${bidValue.toFixed(
-          2
-        )} to match the minimum increment requirement`
-      );
+      toast(`Your bid has been adjusted to $${bidValue.toFixed(2)} to match the minimum increment requirement`, {
+        icon: 'ℹ️',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
     }
 
     setBidError("");
@@ -245,7 +248,7 @@ const AuctionDetail = () => {
       setTimeout(() => setBidSuccess(""), 5000);
     } catch (error) {
       console.error("Error placing bid:", error);
-      const errorMsg =
+      const errorMsg = error.response?.data?.errors?.[0]?.msg ||
         error.response?.data?.message ||
         "Failed to place bid. Please try again.";
       setBidError(errorMsg);

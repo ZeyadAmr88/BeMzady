@@ -10,6 +10,7 @@ import Welcome from "./component/pages/Welcome"
 import Home from "./component/pages/Home"
 import Login from "./component/pages/Login"
 import Register from "./component/pages/Register"
+import EmailVerification from "./components/EmailVerification"
 import AuctionDetail from "./component/pages/AuctionDetail"
 import Auctions from "./component/pages/Auctions"
 import Profile from "./component/pages/Profile"
@@ -52,6 +53,7 @@ function App() {
                     <Route path="/home" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/verify-email" element={<EmailVerification />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/auctions" element={<Auctions />} />
