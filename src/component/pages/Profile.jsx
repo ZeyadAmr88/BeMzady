@@ -240,7 +240,7 @@ const Profile = () => {
                 <span>My Auctions</span>
               </Link> */}
 
-              <Link
+              {/* <Link
                 to="/profile/completed-auctions"
                 className="w-full flex items-center px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >
@@ -254,7 +254,7 @@ const Profile = () => {
               >
                 <Gavel size={18} className="mr-3" />
                 <span>My Bids</span>
-              </Link>
+              </Link> */}
 
               <Link
                 to="/profile/favorites"

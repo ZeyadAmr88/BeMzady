@@ -45,7 +45,7 @@ const Login = () => {
             const result = await login(email, password, rememberMe)
 
             if (result.success) {
-                navigate(from, { replace: true })
+                navigate("/verify-email")
             } else {
                 setError(result.message)
             }
