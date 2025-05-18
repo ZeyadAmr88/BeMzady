@@ -208,6 +208,11 @@ const Navbar = () => {
     return () => clearInterval(intervalId);
   }, [user]);
 
+  const handleCategoryClick = (categoryId) => {
+    setIsCategoryMenuOpen(false);
+    navigate(`/items?category=${categoryId}`);
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 backdrop-blur-md ${
