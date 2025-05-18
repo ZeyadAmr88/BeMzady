@@ -351,6 +351,16 @@ const Navbar = () => {
                 </div>
               )}
             </div>
+            {/* Dashboard Link (Admin Only) */}
+            {user && user.role === "admin" && (
+              <Link
+                to="/admin/dashboard"
+                className="relative group text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200"
+              >
+                Dashboard
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-600 group-hover:w-full transition-all duration-300"></span>
+              </Link>
+            )}
           </nav>
 
           {/* Search Bar */}
