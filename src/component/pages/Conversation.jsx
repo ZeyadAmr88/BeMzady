@@ -73,9 +73,17 @@ const Conversation = () => {
         messagesData = response;
       } else if (response.data && Array.isArray(response.data)) {
         messagesData = response.data;
-      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      } else if (
+        response.data &&
+        response.data.data &&
+        Array.isArray(response.data.data)
+      ) {
         messagesData = response.data.data;
-      } else if (response.data && response.data.messages && Array.isArray(response.data.messages)) {
+      } else if (
+        response.data &&
+        response.data.messages &&
+        Array.isArray(response.data.messages)
+      ) {
         messagesData = response.data.messages;
       }
 
@@ -100,10 +108,10 @@ const Conversation = () => {
           const senderInfo = firstMessage.sender || {};
 
           const recipientInfo = firstMessage.recipient;
-  
+
           console.log("🖊️senderInfo:", senderInfo);
           console.log("🖊️recipientInfo:", recipientInfo);
-  
+
           const potentialParticipants = [senderInfo, recipientInfo].filter(
             (p) => p && p._id
           );
@@ -117,8 +125,14 @@ const Conversation = () => {
 
       console.log("Conversation data:", conversation);
 
-      if (!otherUser || (conversation.participants && Array.isArray(conversation.participants))) {
-        if (conversation.participants && Array.isArray(conversation.participants)) {
+      if (
+        !otherUser ||
+        (conversation.participants && Array.isArray(conversation.participants))
+      ) {
+        if (
+          conversation.participants &&
+          Array.isArray(conversation.participants)
+        ) {
           const other = conversation.participants.find(
             (p) => p._id !== user?._id && p._id
           );
@@ -131,11 +145,19 @@ const Conversation = () => {
             if (messagesData.length > 0) {
               const userSet = new Set();
               messagesData.forEach((msg) => {
-                if (msg.sender && msg.sender._id && msg.sender._id !== user?._id) {
+                if (
+                  msg.sender &&
+                  msg.sender._id &&
+                  msg.sender._id !== user?._id
+                ) {
                   userSet.add(JSON.stringify(msg.sender));
                 }
-                if (msg.recipient && typeof msg.recipient === "object" &&
-                  msg.recipient._id && msg.recipient._id !== user?._id) {
+                if (
+                  msg.recipient &&
+                  typeof msg.recipient === "object" &&
+                  msg.recipient._id &&
+                  msg.recipient._id !== user?._id
+                ) {
                   userSet.add(JSON.stringify(msg.recipient));
                 }
               });
@@ -165,23 +187,30 @@ const Conversation = () => {
     } catch (error) {
       console.error("Error fetching messages:", error);
       if (error.code === "ECONNABORTED") {
-        setError("Request timed out. The server is taking too long to respond.");
+        setError(
+          "Request timed out. The server is taking too long to respond."
+        );
       } else if (error.response?.status === 404) {
         setError("Conversation not found. You can still send a message.");
       } else if (error.response?.status === 403) {
         setError("You don't have permission to view this conversation.");
       } else if (error.response?.status === 400) {
-        setError("The API is having trouble loading messages, but you can still send new ones.");
+        setError(
+          "The API is having trouble loading messages, but you can still send new ones."
+        );
       } else if (!navigator.onLine) {
-        setError("You appear to be offline. Please check your internet connection.");
+        setError(
+          "You appear to be offline. Please check your internet connection."
+        );
       } else {
-        setError("Couldn't load messages from server, but you can still send new ones.");
+        setError(
+          "Couldn't load messages from server, but you can still send new ones."
+        );
       }
     } finally {
       setLoading(false);
     }
   };
-
 
   const markMessagesAsRead = async (messagesArray) => {
     try {
@@ -402,9 +431,9 @@ const Conversation = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {otherUser.last_active
                     ? `Last active ${formatDistanceToNow(
-                      new Date(otherUser.last_active),
-                      { addSuffix: true }
-                    )}`
+                        new Date(otherUser.last_active),
+                        { addSuffix: true }
+                      )}`
                     : ""}
                 </p>
               </div>

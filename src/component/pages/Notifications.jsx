@@ -130,17 +130,17 @@ const Notifications = () => {
             {currentNotifications.map((notification) => (
               <li
                 key={notification._id}
-                className={`p-4 rounded-md border flex items-start gap-3 ${
+                className={`p-4 rounded-md  flex items-start gap-3 ${
                   !notification.isRead
                     ? "bg-rose-50 border-rose-200"
-                    : "bg-white"
+                    : "bg-gray-700"
                 }`}
               >
                 <div className="flex-shrink-0 mt-1">
                   {getNotificationIcon(notification.type)}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-black">
+                  <div className="font-medium text-white">
                     {notification.message}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
