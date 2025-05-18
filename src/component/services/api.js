@@ -3,9 +3,6 @@ import axios from "axios";
 // Define the API base URL - updated to port 3000
 const API_BASE_URL = "https://be-mazady.vercel.app/api";
 
-// Log the base URL for debugging
-console.log("API Base URL:", API_BASE_URL);
-
 // Create the api instance with the correct base URL
 export const api = axios.create({
     baseURL: API_BASE_URL,
