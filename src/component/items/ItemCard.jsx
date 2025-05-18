@@ -47,18 +47,21 @@ const ItemCard = ({ item }) => {
       <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
         <div className="relative">
           <img
-            src={item.item_cover || "/placeholder.svg?height=200&width=300"}
+            src={item.images?.[0] || item.item_cover || "/placeholder.svg?height=200&width=300"}
             alt={item.title}
             className="w-full h-40 sm:h-48 object-cover"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/placeholder.svg?height=200&width=300";
+            }}
           />
           <button
             onClick={toggleFavorite}
             disabled={isLoading}
-            className={`absolute top-2 right-2 p-1.5 sm:p-2 rounded-full ${
-              isFavorite
+            className={`absolute top-2 right-2 p-1.5 sm:p-2 rounded-full ${isFavorite
                 ? "bg-rose-100 text-rose-600"
                 : "bg-gray-100 text-gray-500"
-            } hover:bg-rose-100 hover:text-rose-600 transition-colors`}
+              } hover:bg-rose-100 hover:text-rose-600 transition-colors`}
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart

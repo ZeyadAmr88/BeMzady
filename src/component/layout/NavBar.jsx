@@ -185,6 +185,11 @@ const Navbar = () => {
     return () => clearInterval(intervalId);
   }, [user]);
 
+  const handleCategoryClick = (categoryId) => {
+    setIsCategoryMenuOpen(false);
+    navigate(`/items?category=${categoryId}`);
+  };
+
   return (
     <header className={`sticky top-0 z-50 backdrop-blur-md ${darkMode
       ? "bg-gray-900/80 border-b border-gray-800"
@@ -251,60 +256,33 @@ const Navbar = () => {
                       {error}
                     </div>
                   ) : (
-                    <div className="py-1" role="menu" aria-orientation="vertical">
-                      {categoriesWithSubs.length > 0 ? (
-                        categoriesWithSubs.map((category) => (
-                          <div key={category._id} className="relative">
-                            {/* Category title */}
-                            <Link
-                              to={`/items?category=${category._id}`}
-                              className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${darkMode
-                                ? "hover:bg-gray-700/50 text-gray-300"
-                                : "hover:bg-gray-100/50 text-gray-600"
-                                }`}
-                              onClick={() => setIsCategoryMenuOpen(false)}
-                            >
-                              <span>{category.name}</span>
-                              {category.subcategories && category.subcategories.length > 0 && (
-                                <ChevronRight size={14} className="text-gray-400" />
-                              )}
-                            </Link>
-
-                            {/* Subcategories */}
-                            {category.subcategories && category.subcategories.length > 0 && (
-                              <div className="pl-4 border-l border-gray-200 dark:border-gray-700 ml-4 mt-1 mb-2">
-                                {category.subcategories.map((subcategory) => (
-                                  <Link
-                                    key={subcategory._id}
-                                    to={`/subcategory/${subcategory.slug}`}
-                                    className={`block px-3 py-1.5 text-xs rounded transition-colors duration-200 ${darkMode
-                                      ? "hover:bg-gray-700/50 text-gray-400"
-                                      : "hover:bg-gray-100/50 text-gray-500"
-                                      }`}
-                                    onClick={() => setIsCategoryMenuOpen(false)}
-                                  >
-                                    {subcategory.name}
-                                  </Link>
-                                ))}
-                              </div>
+                    <div className="py-2">
+                      {categoriesWithSubs.map((category) => (
+                        <div key={category._id} className="relative group">
+                          <button
+                            onClick={() => handleCategoryClick(category._id)}
+                            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
+                          >
+                            <span className="text-gray-700 dark:text-gray-300">{category.name}</span>
+                            {category.subcategories?.length > 0 && (
+                              <ChevronRight size={16} className="text-gray-400" />
                             )}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                          No categories found
+                          </button>
+                          {category.subcategories?.length > 0 && (
+                            <div className="hidden group-hover:block absolute left-full top-0 w-64 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
+                              {category.subcategories.map((sub) => (
+                                <button
+                                  key={sub._id}
+                                  onClick={() => handleCategoryClick(sub._id)}
+                                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                                >
+                                  {sub.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <Link
-                        to="/categories"
-                        onClick={() => setIsCategoryMenuOpen(false)}
-                        className={`block px-4 py-2 text-sm font-semibold transition-colors duration-200 ${darkMode
-                          ? "text-rose-400 hover:bg-gray-700/50"
-                          : "text-rose-600 hover:bg-gray-100/50"
-                          }`}
-                      >
-                        View All Categories
-                      </Link>
+                      ))}
                     </div>
                   )}
                 </div>
