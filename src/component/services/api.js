@@ -142,12 +142,19 @@ export const itemService = {
 export const userService = {
     getProfile: () => api.get("/users/MyProfile"),
     getUserById: (userId) => api.get(`/users/${userId}`),
-    updateProfile: (userData) =>
-        api.patch(`/users/${localStorage.getItem("user_id")}`, userData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        }),
+    updateProfile: async (userId, formData) => {
+        try {
+            const response = await api.put(`/users/${userId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    },
     getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
     addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
     removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
@@ -164,6 +171,14 @@ export const userService = {
     getSellerOverview: () => api.get("/analytics/seller/overview"),
     getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
     getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
+    checkUsername: async (username) => {
+        try {
+            const response = await api.get(`/users/check-username/${username}`);
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    },
 }
 
 export const cartService = {
