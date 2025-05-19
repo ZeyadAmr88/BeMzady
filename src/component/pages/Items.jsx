@@ -5,6 +5,7 @@ import { itemService } from "../services/api"
 import { ThemeContext } from "../contexts/ThemeContext"
 import ItemCard from "../items/ItemCard"
 import { Search, Filter, X, Loader, Check, ChevronDown, ChevronUp } from "lucide-react"
+import { useSearchParams } from "react-router-dom"
 
 // Custom Select Component
 const CustomSelect = ({ value, onChange, options }) => {
@@ -99,16 +100,23 @@ const Items = () => {
     sortOrder: "desc",
   })
   const [showFilters, setShowFilters] = useState(false)
-
-  // New state for categories
   const [categories, setCategories] = useState([])
   const [selectedCategories, setSelectedCategories] = useState([])
   const [showCategoryFilter, setShowCategoryFilter] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    // Get category from URL parameters
+    const categoryFromUrl = searchParams.get('category')
+    if (categoryFromUrl) {
+      setSelectedCategories([categoryFromUrl])
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchItems()
     fetchCategories()
-  }, [filters.sortBy, filters.sortOrder])
+  }, [filters.sortBy, filters.sortOrder, selectedCategories])
 
   const fetchCategories = async () => {
     try {
@@ -116,17 +124,25 @@ const Items = () => {
       const data = await response.json()
 
       if (data.data && Array.isArray(data.data)) {
-        setCategories(data.data)
+        // Ensure unique categories by using a Map with _id as key
+        const uniqueCategories = Array.from(
+          new Map(data.data.map(category => [category._id, category])).values()
+        )
+        setCategories(uniqueCategories)
       } else {
         console.error("Invalid categories response format:", data)
         // Extract unique categories from items as fallback
-        const uniqueCategories = [...new Set(items.map((item) => item.category))]
+        const uniqueCategories = Array.from(
+          new Map(items.map(item => [item.category?._id, item.category]).filter(Boolean)).values()
+        )
         setCategories(uniqueCategories)
       }
     } catch (error) {
       console.error("Error fetching categories:", error)
       // Extract unique categories from items as fallback
-      const uniqueCategories = [...new Set(items.map((item) => item.category))]
+      const uniqueCategories = Array.from(
+        new Map(items.map(item => [item.category?._id, item.category]).filter(Boolean)).values()
+      )
       setCategories(uniqueCategories)
     }
   }
@@ -139,7 +155,7 @@ const Items = () => {
       }
 
       if (searchQuery) {
-        params.search = searchQuery
+        params.keyword = searchQuery
       }
 
       if (filters.status) {
@@ -156,20 +172,34 @@ const Items = () => {
 
       // Add category filter
       if (selectedCategories.length > 0) {
-        params.categories = selectedCategories.join(",")
+        params.category = selectedCategories.join(",")
       }
 
+      // Add fields parameter to specify which fields to return
+      params.fields = "title,description,price,category,images,item_cover,status,createdAt,item_status,is_featured,favorites"
+
+      console.log("Fetching items with params:", params) // Debug log
       const response = await itemService.getItems(params)
-      setItems(response.data.data || [])
+      console.log("API Response:", response) // Debug log
+
+      if (response.data) {
+        setItems(response.data.data || [])
+      } else {
+        setItems([])
+        console.error("Invalid response format:", response)
+      }
 
       // If we didn't fetch categories separately, extract them from items
       if (categories.length === 0) {
-        const uniqueCategories = [...new Set(response.data.data.map((item) => item.category).filter(Boolean))]
+        const uniqueCategories = Array.from(
+          new Map(response.data.data.map(item => [item.category?._id, item.category]).filter(Boolean)).values()
+        )
         setCategories(uniqueCategories)
       }
     } catch (error) {
       console.error("Error fetching items:", error)
       setError("Failed to load items. Please try again later.")
+      setItems([])
     } finally {
       setLoading(false)
     }
@@ -352,16 +382,21 @@ const Items = () => {
                 >
                   {categories.length > 0 ? (
                     <div className="space-y-2">
-                      {categories.map((category) => (
-                        <div key={category._id} className="flex items-center">
-                          <CustomCheckbox
-                            id={`category-${category._id}`}
-                            checked={selectedCategories.includes(category._id)}
-                            onChange={() => handleCategoryChange(category._id)}
-                          />
-                          <CustomLabel htmlFor={`category-${category._id}`}>{category.name}</CustomLabel>
-                        </div>
-                      ))}
+                      {categories
+                        .filter((category, index, self) =>
+                          // Ensure unique categories by checking if this is the first occurrence of this _id
+                          index === self.findIndex((c) => c._id === category._id)
+                        )
+                        .map((category) => (
+                          <div key={`category-${category._id}`} className="flex items-center">
+                            <CustomCheckbox
+                              id={`category-${category._id}`}
+                              checked={selectedCategories.includes(category._id)}
+                              onChange={() => handleCategoryChange(category._id)}
+                            />
+                            <CustomLabel htmlFor={`category-${category._id}`}>{category.name}</CustomLabel>
+                          </div>
+                        ))}
                     </div>
                   ) : (
                     <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>No categories available</p>

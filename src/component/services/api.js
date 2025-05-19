@@ -224,74 +224,80 @@ export const itemService = {
 };
 
 export const userService = {
-  getProfile: () => api.get("/users/MyProfile"),
-  getUserById: (userId) => api.get(`/users/${userId}`),
-  updateProfile: (userData) =>
-    api.patch(`/users/${localStorage.getItem("user_id")}`, userData, {
+getProfile: () => api.get("/users/MyProfile"),
+getUserById: (userId) => api.get(`/users/${userId}`),
+updateProfile: async (userId, formData) => {
+  try {
+    const response = await api.put(`/users/${userId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-      },
-    }),
-  getFavorites: () =>
-    api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
-  addToFavorites: (itemId) =>
-    api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
-  removeFromFavorites: (itemId) =>
-    api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
-  updatePassword: (currentPassword, newPassword) =>
-    api.patch(`/users/${localStorage.getItem("user_id")}/password`, {
-      currentPassword,
-      newPassword,
-    }),
-  updateRole: (role) =>
-    api.patch(`/users/${localStorage.getItem("user_id")}/role`, {
-      role,
-    }),
-  // New endpoints for seller dashboard
-  getSellerOverview: () => api.get("/analytics/seller/overview"),
-  getSellerItems: (status = "available", page = 1) =>
-    api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
-  getSellerAuctions: (status = "completed", page = 1, limit = 5) =>
-    api.get(
-      `/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`
-    ),
-  getAllUsers: async (params) => {
-    try {
-      const response = await api.get("users", { params });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      throw error;
-    }
-  },
-  getOneUser: async (userId) => {
-    try {
-      const response = await api.get(`users/${userId}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching user ${userId}:`, error);
-      throw error;
-    }
-  },
-  updateUser: async (userId, userData) => {
-    try {
-      const response = await api.put(`users/${userId}`, userData);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating user ${userId}:`, error);
-      throw error;
-    }
-  },
-  deleteUser: async (userId) => {
-    try {
-      const response = await api.delete(`users/${userId}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error deleting user ${userId}:`, error);
-      throw error;
-    }
-  },
-};
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+},
+getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
+addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
+removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
+updatePassword: (currentPassword, newPassword) =>
+  api.patch(`/users/${localStorage.getItem("user_id")}/password`, { currentPassword, newPassword }),
+updateRole: (role) =>
+  api.patch(`/users/${localStorage.getItem("user_id")}/role`, { role }),
+getSellerOverview: () => api.get("/analytics/seller/overview"),
+getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
+getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
+
+// Admin methods from zeyad
+getAllUsers: async (params) => {
+  try {
+    const response = await api.get("users", { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
+},
+getOneUser: async (userId) => {
+  try {
+    const response = await api.get(`users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching user ${userId}:`, error);
+    throw error;
+  }
+},
+updateUser: async (userId, userData) => {
+  try {
+    const response = await api.put(`users/${userId}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating user ${userId}:`, error);
+    throw error;
+  }
+},
+deleteUser: async (userId) => {
+  try {
+    const response = await api.delete(`users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting user ${userId}:`, error);
+    throw error;
+  }
+},
+
+// New checkUsername method from main
+checkUsername: async (username) => {
+  try {
+    const response = await api.get(`/users/check-username/${username}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+},
+
 
 export const cartService = {
   getCart: () => {

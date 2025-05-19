@@ -42,6 +42,13 @@ const SellerDashboard = () => {
     const updateToSellerRole = async () => {
         try {
             setLoading(true)
+            // Check if current role is buyer
+            if (user.role !== "buyer") {
+                toast.error("Only buyers can upgrade to seller status")
+                setLoading(false)
+                return
+            }
+
             await userService.updateRole("seller")
             toast.success("Your account has been upgraded to seller status!")
             fetchDashboardData()
@@ -50,6 +57,7 @@ const SellerDashboard = () => {
             const errorMessage = error.response?.data?.message || "Failed to update role"
             setError(errorMessage)
             toast.error(errorMessage)
+        } finally {
             setLoading(false)
         }
     }
@@ -293,7 +301,7 @@ const SellerDashboard = () => {
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <h2 className="text-xl font-bold">My Items</h2>
                     <Link
-                        to="/product/add"
+                        to="/products/add"
                         className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors text-sm"
                     >
                         Add New Item

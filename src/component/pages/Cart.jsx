@@ -6,6 +6,7 @@ import { ShoppingCart, AlertCircle, ArrowRight, Loader } from 'lucide-react'
 import { cartService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { CartContext } from "../contexts/CartContext"
+import { useAddress } from "../contexts/AddressContext"
 import { toast } from "react-hot-toast"
 import { checkStripeRedirect, redirectToStripePayment } from "../utils/stripeHandler"
 import CartItem from "../cart/CartItem"
@@ -13,7 +14,7 @@ import CartItem from "../cart/CartItem"
 const Cart = () => {
     const { user } = useContext(AuthContext)
     const { cartItems, loading: cartLoading, fetchCart, removeFromCart: removeCartItem, clearCart: clearCartItems } = useContext(CartContext)
-    // eslint-disable-next-line no-unused-vars
+    const { address } = useAddress()
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -210,6 +211,20 @@ const Cart = () => {
     }
 
     const handleCheckout = async () => {
+        // Check if user has an address
+        if (!address || address.trim() === '') {
+            toast.error("Please add your address in your profile before proceeding with checkout", {
+                position: "top-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+            navigate("/profile");
+            return;
+        }
+
         if (cartItems.length === 0) {
             toast.error("Your cart is empty")
             return

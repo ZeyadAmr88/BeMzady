@@ -208,6 +208,11 @@ const Navbar = () => {
     return () => clearInterval(intervalId);
   }, [user]);
 
+  const handleCategoryClick = (categoryId) => {
+    setIsCategoryMenuOpen(false);
+    navigate(`/items?category=${categoryId}`);
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 backdrop-blur-md ${
@@ -446,7 +451,7 @@ const Navbar = () => {
 
                 <Link
                   to="/messages"
-                  className="relative p-1.5 text-gray-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400 transition-colors duration-200"
+                  className="relative p-1.5 text-gray-500 hover:text-rose-600 7قث:text-gray-400 dark:hover:text-rose-400 transition-colors duration-200"
                 >
                   <MessageCircle size={22} />
                   {unreadMessageCount > 0 && (
