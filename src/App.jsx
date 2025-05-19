@@ -43,7 +43,9 @@ import AdminSubcategoryManagement from "./component/admin/AdminSubcategoryManage
 import AdminUserManagement from "./component/admin/AdminUserManagement";
 import AdminUserDetails from "./component/admin/AdminUserDetails";
 import AdminCategoryManagement from "./component/admin/AdminCategoryManagement";
+import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManagement";
 import NotFound from "./component/pages/NotFound";
+
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
 // import Subcategories from "./component/pages/Subcategories"
@@ -229,6 +231,22 @@ function App() {
                         }
                       />
 
+                    {/* Admin Auction Management Route */}
+                    <Route
+                      path="/admin/auctions"
+                      element={
+                        <ProtectedRoute adminOnly>
+                          <AdminAuctionManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </Layout>
+              </Router>
+            </ToastProvider>
+          </CartProvider>
+        </NotificationProvider>
+
                       {/* Catch all route for 404 */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
@@ -250,6 +268,7 @@ function App() {
             </CartProvider>
           </NotificationProvider>
         </AddressProvider>
+
       </AuthProvider>
     </ThemeProvider>
   );

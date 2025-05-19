@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-  getSubcategoriesByCategory,
-  createSubcategory,
-  updateSubcategory,
-  deleteSubcategory,
-} from "../../services/api";
+  categoryService
+} from "../services/api";
 
 // Custom Modal Components (will be defined below)
 const CreateSubcategoryModal = ({
@@ -266,7 +263,7 @@ const AdminSubcategoryManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getSubcategoriesByCategory(id);
+      const response = await categoryService.getSubcategoriesByCategory(id);
       // Assuming the response data is an array of subcategories
       setSubcategories(response.data || []);
     } catch (err) {
@@ -290,7 +287,7 @@ const AdminSubcategoryManagement = () => {
 
     try {
       // Using POST Create Subcategory API: /api/subcategories
-      await createSubcategory(subcategoryData);
+      await categoryService.createSubcategory(subcategoryData);
       setIsCreateModalOpen(false);
       setNewSubcategoryName("");
       fetchSubcategories(categoryId); // Refresh list
@@ -318,7 +315,7 @@ const AdminSubcategoryManagement = () => {
 
     try {
       // Using PUT update subcategory API: /api/subcategories/:subcategoryId
-      await updateSubcategory(editingSubcategory._id, updatedSubcategoryData);
+      await categoryService.updateSubcategory(editingSubcategory._id, updatedSubcategoryData);
       setIsEditModalOpen(false);
       setEditingSubcategory(null);
       setEditSubcategoryName("");
@@ -344,7 +341,7 @@ const AdminSubcategoryManagement = () => {
     setDeleteLoading(true);
     try {
       // Use DEL delete subcategory API: /api/subcategories/:subcategoryId
-      await deleteSubcategory(subcategoryToDeleteId);
+      await categoryService.deleteSubcategory(subcategoryToDeleteId);
       setIsDeleteModalOpen(false);
       setSubcategoryToDeleteId(null);
       fetchSubcategories(categoryId); // Refresh list

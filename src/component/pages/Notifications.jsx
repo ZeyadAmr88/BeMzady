@@ -3,7 +3,7 @@ import {
   getUserNotifications,
   markAsRead,
   markAllAsRead,
-} from "../../services/api";
+} from "../services/api.js";
 import { formatDistanceToNow } from "date-fns";
 import {
   Bell,
