@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "../../services/api"; // Assuming API service methods are here
+import { categoryService } from "../services/api"; // Assuming API service methods are here
 
 // Custom Modal Components
 const CreateCategoryModal = ({
@@ -323,7 +318,7 @@ const AdminCategoryManagement = () => {
     setError(null);
     try {
       // Using the GET All Categories API: /api/categories?page={page}&limit={limit}
-      const response = await getCategories({ page, limit });
+      const response = await categoryService.getCategories({ page, limit });
       console.log("🦆response category", response);
 
       // Assuming the response structure from your image: { data: { results: [], totalCategories: 0, totalPages: 0 } }
@@ -365,7 +360,7 @@ const AdminCategoryManagement = () => {
 
     try {
       // Using POST Create Category API: /api/categories
-      await createCategory(formData);
+      await categoryService.createCategory(formData);
       setIsCreateModalOpen(false);
       setNewCategoryName("");
       setNewCategoryImage(null);
@@ -397,7 +392,7 @@ const AdminCategoryManagement = () => {
 
     try {
       // Using PUT update category by id API: /api/categories/{category_id}
-      await updateCategory(editingCategory._id, formData);
+      await categoryService.updateCategory(editingCategory._id, formData);
       setIsEditModalOpen(false);
       setEditingCategory(null);
       setEditCategoryName("");
@@ -421,7 +416,7 @@ const AdminCategoryManagement = () => {
 
     try {
       // Use DEL delete category by id API: /api/categories/{category_id}
-      await deleteCategory(categoryToDeleteId);
+      await categoryService.deleteCategory(categoryToDeleteId);
       setIsDeleteModalOpen(false);
       setCategoryToDeleteId(null);
       fetchCategories(currentPage, limit); // Refresh list
@@ -462,7 +457,9 @@ const AdminCategoryManagement = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6">Manage Categories and SubCategories</h2>
+      <h2 className="text-2xl font-bold mb-6">
+        Manage Categories and SubCategories
+      </h2>
 
       {/* Add Category Button to open modal */}
       <div className="mb-6">

@@ -10,7 +10,7 @@ import {
   getUserNotifications,
   markAsRead,
   markAllAsRead,
-} from "../../services/api";
+} from "../services/api";
 
 const NotificationDropdown = () => {
   const [notifications, setNotifications] = useState([]);

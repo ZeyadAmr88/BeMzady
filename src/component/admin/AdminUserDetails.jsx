@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOneUser, updateUser, deleteUser } from "../../services/api";
+import { userService } from "../services/api";
 import EditUserModal from "../admin/EditUserModal";
 
 const DeleteUserModal = ({
@@ -89,7 +89,7 @@ const AdminUserDetails = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getOneUser(userId);
+      const response = await userService.getOneUser(userId);
       setUser(response.data);
     } catch (err) {
       console.error("Error fetching user details:", err);
@@ -113,7 +113,7 @@ const AdminUserDetails = () => {
           : undefined,
       };
 
-      await updateUser(userId, updatedData);
+      await userService.updateUser(userId, updatedData);
       setIsEditModalOpen(false);
       setEditUserData({});
       fetchUserDetails(); // Refresh user details
@@ -132,7 +132,7 @@ const AdminUserDetails = () => {
   const handleDeleteUser = async () => {
     setDeleteLoading(true);
     try {
-      await deleteUser(userId);
+      await userService.deleteUser(userId);
       navigate("/admin/users"); // Redirect to users list after deletion
     } catch (err) {
       console.error("Error deleting user:", err);

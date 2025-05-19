@@ -40,6 +40,7 @@ import AdminSubcategoryManagement from "./component/admin/AdminSubcategoryManage
 import AdminUserManagement from "./component/admin/AdminUserManagement";
 import AdminUserDetails from "./component/admin/AdminUserDetails";
 import AdminCategoryManagement from "./component/admin/AdminCategoryManagement";
+import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManagement";
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
 // import Subcategories from "./component/pages/Subcategories"
@@ -220,6 +221,16 @@ function App() {
                       element={
                         <ProtectedRoute adminOnly>
                           <AdminUserDetails />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Admin Auction Management Route */}
+                    <Route
+                      path="/admin/auctions"
+                      element={
+                        <ProtectedRoute adminOnly>
+                          <AdminAuctionManagement />
                         </ProtectedRoute>
                       }
                     />

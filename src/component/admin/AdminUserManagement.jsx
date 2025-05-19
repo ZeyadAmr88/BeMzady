@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllUsers, updateUser, deleteUser } from "../../services/api";
+import { userService } from "../services/api";
 import EditUserModal from "./EditUserModal";
 
 const DeleteUserModal = ({
@@ -98,7 +98,7 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getAllUsers({ page, limit });
+      const response = await userService.getAllUsers({ page, limit });
       console.log("✋response", response);
 
       const { data, totalUsers, totalPages, currentPage } = response;
@@ -122,7 +122,7 @@ const AdminUserManagement = () => {
     setCreateError(null);
 
     try {
-      await createUser(newUserData);
+      await userService.createUser(newUserData);
       setIsCreateModalOpen(false);
       setNewUserData({});
       fetchUsers(currentPage, limit);
@@ -149,7 +149,7 @@ const AdminUserManagement = () => {
           : undefined,
       };
 
-      await updateUser(editingUser._id, updatedData);
+      await userService.updateUser(editingUser._id, updatedData);
       setIsEditModalOpen(false);
       setEditingUser(null);
       setEditUserData({});
@@ -169,7 +169,7 @@ const AdminUserManagement = () => {
   const handleDeleteUser = async (userId) => {
     setDeleteLoading(true);
     try {
-      await deleteUser(userId);
+      await userService.deleteUser(userId);
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
       fetchUsers(currentPage, limit);

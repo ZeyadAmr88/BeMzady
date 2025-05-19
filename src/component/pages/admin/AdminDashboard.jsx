@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllUsers, getCategories } from "../../../services/api";
-import AdminCategoryManagement from "../../admin/AdminCategoryManagement";
+import {
+  userService,
+  categoryService,
+  auctionService,
+} from "../../services/api";
+import Toast from "../../common/Toast";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -10,6 +14,19 @@ const AdminDashboard = () => {
   const [totalCategories, setTotalCategories] = useState("?");
   const [totalAuctions, setTotalAuctions] = useState("?"); // Placeholder
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ show: false, message: "", type: "success" });
+  };
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -17,7 +34,10 @@ const AdminDashboard = () => {
       setError(null);
       try {
         // Fetch Total Users
-        const usersResponse = await getAllUsers({ page: 1, limit: 1 }); // Fetching just 1 to get total count
+        const usersResponse = await userService.getAllUsers({
+          page: 1,
+          limit: 1,
+        }); // Fetching just 1 to get total count
         if (usersResponse.totalUsers !== undefined) {
           setTotalUsers(usersResponse.totalUsers);
         } else if (usersResponse.data?.totalUsers !== undefined) {
@@ -26,10 +46,14 @@ const AdminDashboard = () => {
         } else {
           console.warn("totalUsers not found in users response", usersResponse);
           setTotalUsers("N/A");
+          showToast("Failed to load user count", "error");
         }
 
         // Fetch Total Categories
-        const categoriesResponse = await getCategories({ page: 1, limit: 1 }); // Fetching just 1 to get total count
+        const categoriesResponse = await categoryService.getCategories({
+          page: 1,
+          limit: 1,
+        }); // Fetching just 1 to get total count
         if (categoriesResponse.totalCategories !== undefined) {
           setTotalCategories(categoriesResponse.totalCategories);
         } else if (categoriesResponse.data?.totalCategories !== undefined) {
@@ -41,14 +65,31 @@ const AdminDashboard = () => {
             categoriesResponse
           );
           setTotalCategories("N/A");
+          showToast("Failed to load category count", "error");
         }
 
-        // TODO: Fetch Total Auctions if API exists
-        // const auctionsResponse = await getAuctions(...);
-        // setTotalAuctions(auctionsResponse.totalAuctions);
+        // Fetch Total Auctions
+        const auctionsResponse = await auctionService.getAuctions({
+          page: 1,
+          limit: 1,
+        });
+        if (auctionsResponse.totalAuctions !== undefined) {
+          setTotalAuctions(auctionsResponse.totalAuctions);
+        } else if (auctionsResponse.data?.totalAuctions !== undefined) {
+          // Handle nested structure if needed
+          setTotalAuctions(auctionsResponse.data.totalAuctions);
+        } else {
+          console.warn(
+            "totalAuctions not found in auctions response",
+            auctionsResponse
+          );
+          setTotalAuctions("N/A");
+          showToast("Failed to load auction count", "error");
+        }
       } catch (err) {
         console.error("Error fetching dashboard counts:", err);
         setError("Failed to load dashboard data.");
+        showToast("Failed to load dashboard data", "error");
         setTotalUsers("Error");
         setTotalCategories("Error");
         setTotalAuctions("Error");
@@ -76,13 +117,11 @@ const AdminDashboard = () => {
           <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">
             {title}
           </h3>
-          <p className={`text-3xl font-bold ${color}`}>
-            {isLoading ? (
-              <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-            ) : (
-              value
-            )}
-          </p>
+          {isLoading ? (
+            <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+          ) : (
+            <p className={`text-3xl font-bold ${color}`}>{value}</p>
+          )}
         </div>
         <div className={`p-3 rounded-full `}>{icon}</div>
       </div>
@@ -222,6 +261,26 @@ const AdminDashboard = () => {
             </svg>
           }
           onClick={() => handleNavigation("/admin/users")}
+        />
+        <ManagementCard
+          title="Manage Auctions"
+          description="View, create, edit, end, and delete auctions."
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          }
+          onClick={() => handleNavigation("/admin/auctions")}
         />
       </div>
     </div>
