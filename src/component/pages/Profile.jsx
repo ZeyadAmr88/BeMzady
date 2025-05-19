@@ -3,152 +3,192 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate, Outlet, useLocation } from "react-router-dom"
 import { AuthContext } from "../contexts/AuthContext"
-import { useToast } from "../contexts/ToastContext"
+// import { useToast } from "../contexts/ToastContext"
 import { userService } from "../services/api"
 import { User, Mail, Phone, MapPin, Package, Heart, Gavel, Settings, LogOut, Edit, Camera, Save, X, BarChart2 } from 'lucide-react'
 import ProfileCompletedAuctions from "./ProfileCompletedAuctions"
 import SellerDashboard from "./SellerDashboard"
+import { useAddress } from "../contexts/AddressContext"
+import { toast } from "react-toastify"
 
 const Profile = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, updateUser } = useContext(AuthContext);
+  const { updateAddress } = useAddress();
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess, showError } = useToast();
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    username: "",
+    email: "",
+    street: "",
+    city: "",
+    building: "",
+    floor: "",
+    address: "",
+    phone_number: "",
+    national_id: "",
+    user_picture: null
+  });
+  const [previewImage, setPreviewImage] = useState(null);
+  const [usernameError, setUsernameError] = useState("");
 
   // Check if we're on a nested route
   const isNestedRoute =
     location.pathname.includes("/profile/") &&
     location.pathname !== "/profile/";
 
-  const [profileData, setProfileData] = useState({
-    username: "",
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    address: "",
-    city: "",
-    country: "",
-    bio: "",
-    user_picture: null,
-  });
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
   useEffect(() => {
     if (user) {
-      setProfileData({
-        username: user.username || "",
+      // Split the address into components if it exists
+      const addressParts = user.address ? user.address.split(', ') : ['', '', '', ''];
+      setFormData({
         first_name: user.first_name || "",
         last_name: user.last_name || "",
+        username: user.username || "",
         email: user.email || "",
-        phone_number: user.phone_number || "",
+        street: addressParts[0] || "",
+        city: addressParts[1] || "",
+        building: addressParts[2] || "",
+        floor: addressParts[3] || "",
         address: user.address || "",
-        city: user.city || "",
-        country: user.country || "",
-        bio: user.bio || "",
-        user_picture: user.user_picture || null,
+        phone_number: user.phone_number || "",
+        national_id: user.national_id || "",
+        user_picture: null
       });
+      setPreviewImage(user.user_picture);
     }
   }, [user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfileData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+
+      // If any address component changes, update the concatenated address
+      if (['street', 'city', 'building', 'floor'].includes(name)) {
+        const addressComponents = [
+          newData.street,
+          newData.city,
+          newData.building,
+          newData.floor
+        ].filter(Boolean); // Remove empty values
+        newData.address = addressComponents.join(', ');
+      }
+
+      return newData;
+    });
+
+    // Check username availability when username changes
+    if (name === 'username' && value !== user.username) {
+      checkUsernameAvailability(value);
+    }
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const checkUsernameAvailability = async (username) => {
+    try {
+      const response = await userService.checkUsername(username);
+      if (response.data.available) {
+        setUsernameError("");
+      } else {
+        setUsernameError("This username is already taken");
+      }
+    } catch (error) {
+      console.error("Error checking username:", error);
+    }
   };
 
-  const handleProfilePictureChange = (e) => {
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Preview the image
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileData((prev) => ({
-          ...prev,
-          user_picture: e.target.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+      setFormData((prev) => ({
+        ...prev,
+        user_picture: file
+      }));
+      setPreviewImage(URL.createObjectURL(file));
     }
   };
 
-  const handleUpdateProfile = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Create FormData for file upload
-      const formData = new FormData();
-
-      // Append all profile data
-      Object.keys(profileData).forEach((key) => {
-        if (
-          key !== "user_picture" ||
-          (key === "user_picture" && profileData[key] instanceof File)
-        ) {
-          formData.append(key, profileData[key]);
-        }
+    if (usernameError) {
+      toast.error("Please choose a different username", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
-
-      await userService.updateProfile(formData);
-      showSuccess("Profile updated successfully!");
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showError(
-        error.response?.data?.message ||
-        "Failed to update profile. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdatePassword = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showError("New passwords do not match");
-      setLoading(false);
       return;
     }
 
     try {
-      await userService.updatePassword(
-        passwordData.currentPassword,
-        passwordData.newPassword
-      );
-      showSuccess("Password updated successfully!");
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+      setLoading(true);
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== null) {
+          formDataToSend.append(key, formData[key]);
+        }
       });
+
+      const response = await userService.updateProfile(user._id, formDataToSend);
+
+      if (response.data.status === "success") {
+        updateUser(response.data.data);
+        updateAddress(response.data.data.address);
+        toast.success("Profile updated successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        setIsEditing(false);
+      }
     } catch (error) {
-      console.error("Error updating password:", error);
-      showError(
-        error.response?.data?.message ||
-        "Failed to update password. Please try again."
-      );
+      console.error("Error updating profile:", error);
+      // Check for username error in the response
+      if (error.response?.data?.errors) {
+        const usernameError = error.response.data.errors.find(err => err.path === 'username');
+        if (usernameError) {
+          setUsernameError(usernameError.msg);
+          toast.error(usernameError.msg, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          toast.error("Failed to update profile", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }
+      } else {
+        toast.error("Failed to update profile", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -156,8 +196,85 @@ const Profile = () => {
 
   const handleLogout = () => {
     logout();
+    toast.info("Logged out successfully", {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
     navigate("/");
   };
+
+  // Replace the address textarea with this new section in both view and edit modes
+  const renderAddressSection = () => (
+    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+      <h3 className="text-sm font-medium mb-4">Address Information</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Street</label>
+          <input
+            type="text"
+            name="street"
+            value={formData.street}
+            onChange={handleInputChange}
+            disabled={!isEditing}
+            className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+            placeholder="Enter street name"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">City</label>
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            onChange={handleInputChange}
+            disabled={!isEditing}
+            className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+            placeholder="Enter city name"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Building</label>
+          <input
+            type="text"
+            name="building"
+            value={formData.building}
+            onChange={handleInputChange}
+            disabled={!isEditing}
+            className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+            placeholder="Enter building number/name"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Floor</label>
+          <input
+            type="text"
+            name="floor"
+            value={formData.floor}
+            onChange={handleInputChange}
+            disabled={!isEditing}
+            className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+            placeholder="Enter floor number"
+            required
+          />
+        </div>
+      </div>
+      {!isEditing && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-1">Full Address</label>
+          <p className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+            {formData.address || "No address provided"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 
   if (!user) {
     return (
@@ -176,13 +293,10 @@ const Profile = () => {
             <div className="flex flex-col items-center mb-6">
               <div className="relative mb-4">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-                  {profileData.user_picture ? (
+                  {previewImage ? (
                     <img
-                      src={
-                        profileData.user_picture ||
-                        "/placeholder.svg?height=96&width=96"
-                      }
-                      alt={profileData.username}
+                      src={previewImage}
+                      alt={formData.username}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -192,20 +306,18 @@ const Profile = () => {
                   )}
                 </div>
               </div>
-              <h2 className="text-xl font-bold">{profileData.username}</h2>
+              <h2 className="text-xl font-bold">{formData.username}</h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {profileData.email}
+                {formData.email}
               </p>
             </div>
 
             <nav className="space-y-1">
-
-
               <button
                 onClick={() => setActiveTab("info")}
                 className={`w-full flex items-center px-4 py-2 rounded-md ${activeTab === "info"
-                    ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
               >
                 <User size={18} className="mr-3" />
@@ -329,283 +441,212 @@ const Profile = () => {
                   <div className="p-6">
                     {!isEditing ? (
                       <div className="space-y-6">
+                        <div className="flex items-center space-x-6">
+                          <div className="relative">
+                            <img
+                              src={previewImage || "/placeholder.svg"}
+                              alt="Profile"
+                              className="w-32 h-32 rounded-full object-cover"
+                            />
+                            {isEditing && (
+                              <label className="absolute bottom-0 right-0 bg-rose-600 text-white p-2 rounded-full cursor-pointer hover:bg-rose-700">
+                                <Camera size={20} />
+                                <input
+                                  type="file"
+                                  name="user_picture"
+                                  accept="image/*"
+                                  onChange={handleImageChange}
+                                  className="hidden"
+                                />
+                              </label>
+                            )}
+                          </div>
+                          {isEditing && previewImage && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreviewImage(null);
+                                setFormData(prev => ({ ...prev, user_picture: null }));
+                              }}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <X size={20} />
+                            </button>
+                          )}
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Username
-                            </h3>
-                            <p className="mt-1">{profileData.username}</p>
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Email
-                            </h3>
-                            <p className="mt-1">{profileData.email}</p>
-                          </div>
                           <div>
                             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               First Name
                             </h3>
-                            <p className="mt-1">
-                              {profileData.first_name || "Not provided"}
-                            </p>
+                            <p className="mt-1">{formData.first_name}</p>
                           </div>
                           <div>
                             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Last Name
                             </h3>
-                            <p className="mt-1">
-                              {profileData.last_name || "Not provided"}
-                            </p>
+                            <p className="mt-1">{formData.last_name}</p>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Email
+                            </h3>
+                            <p className="mt-1">{formData.email}</p>
                           </div>
                           <div>
                             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Phone Number
                             </h3>
-                            <p className="mt-1">
-                              {profileData.phone_number || "Not provided"}
-                            </p>
+                            <p className="mt-1">{formData.phone_number}</p>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                              National ID
+                            </h3>
+                            <p className="mt-1">{formData.national_id}</p>
                           </div>
                         </div>
 
-
+                        {renderAddressSection()}
                       </div>
                     ) : (
-                      <form onSubmit={handleUpdateProfile}>
-                        <div className="space-y-6">
-                          <div className="flex justify-center mb-6">
-                            <div className="relative">
-                              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-                                {profileData.user_picture ? (
-                                  <img
-                                    src={
-                                      profileData.user_picture ||
-                                      "/placeholder.svg?height=96&width=96"
-                                    }
-                                    alt={profileData.username}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <User size={40} className="text-gray-400" />
-                                  </div>
-                                )}
-                              </div>
-                              <label
-                                htmlFor="profile-picture"
-                                className="absolute bottom-0 right-0 bg-rose-600 text-white p-1 rounded-full cursor-pointer"
-                              >
-                                <Camera size={16} />
-                              </label>
-                              <input
-                                type="file"
-                                id="profile-picture"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleProfilePictureChange}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label
-                                htmlFor="username"
-                                className="block text-sm font-medium mb-1"
-                              >
-                                Username
-                              </label>
-                              <input
-                                type="text"
-                                id="username"
-                                name="username"
-                                value={profileData.username}
-                                onChange={handleInputChange}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="email"
-                                className="block text-sm font-medium mb-1"
-                              >
-                                Email
-                              </label>
-                              <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={profileData.email}
-                                onChange={handleInputChange}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                                disabled
-                              />
-                              <p className="text-xs text-gray-500 mt-1">
-                                Email cannot be changed
-                              </p>
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="first_name"
-                                className="block text-sm font-medium mb-1"
-                              >
-                                First Name
-                              </label>
-                              <input
-                                type="text"
-                                id="first_name"
-                                name="first_name"
-                                value={profileData.first_name}
-                                onChange={handleInputChange}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="last_name"
-                                className="block text-sm font-medium mb-1"
-                              >
-                                Last Name
-                              </label>
-                              <input
-                                type="text"
-                                id="last_name"
-                                name="last_name"
-                                value={profileData.last_name}
-                                onChange={handleInputChange}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="phone_number"
-                                className="block text-sm font-medium mb-1"
-                              >
-                                Phone Number
-                              </label>
-                              <input
-                                type="tel"
-                                id="phone_number"
-                                name="phone_number"
-                                value={profileData.phone_number}
-                                onChange={handleInputChange}
-                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <h3 className="text-sm font-medium mb-2">
-                              Address
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="md:col-span-2">
-                                <label
-                                  htmlFor="address"
-                                  className="block text-sm font-medium mb-1"
-                                >
-                                  Street Address
-                                </label>
+                      <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="flex items-center space-x-6">
+                          <div className="relative">
+                            <img
+                              src={previewImage || "/placeholder.svg"}
+                              alt="Profile"
+                              className="w-32 h-32 rounded-full object-cover"
+                            />
+                            {isEditing && (
+                              <label className="absolute bottom-0 right-0 bg-rose-600 text-white p-2 rounded-full cursor-pointer hover:bg-rose-700">
+                                <Camera size={20} />
                                 <input
-                                  type="text"
-                                  id="address"
-                                  name="address"
-                                  value={profileData.address}
-                                  onChange={handleInputChange}
-                                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                                  type="file"
+                                  name="user_picture"
+                                  accept="image/*"
+                                  onChange={handleImageChange}
+                                  className="hidden"
                                 />
-                              </div>
-                              <div>
-                                <label
-                                  htmlFor="city"
-                                  className="block text-sm font-medium mb-1"
-                                >
-                                  City
-                                </label>
-                                <input
-                                  type="text"
-                                  id="city"
-                                  name="city"
-                                  value={profileData.city}
-                                  onChange={handleInputChange}
-                                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  htmlFor="country"
-                                  className="block text-sm font-medium mb-1"
-                                >
-                                  Country
-                                </label>
-                                <input
-                                  type="text"
-                                  id="country"
-                                  name="country"
-                                  value={profileData.country}
-                                  onChange={handleInputChange}
-                                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                                />
-                              </div>
-                            </div>
+                              </label>
+                            )}
                           </div>
-
-                          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <label
-                              htmlFor="bio"
-                              className="block text-sm font-medium mb-1"
-                            >
-                              Bio
-                            </label>
-                            <textarea
-                              id="bio"
-                              name="bio"
-                              rows={4}
-                              value={profileData.bio}
-                              onChange={handleInputChange}
-                              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                              placeholder="Tell others about yourself..."
-                            ></textarea>
-                          </div>
-
-                          <div className="flex justify-end">
+                          {isEditing && previewImage && (
                             <button
-                              type="submit"
-                              className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors flex items-center"
-                              disabled={loading}
+                              type="button"
+                              onClick={() => {
+                                setPreviewImage(null);
+                                setFormData(prev => ({ ...prev, user_picture: null }));
+                              }}
+                              className="text-red-600 hover:text-red-700"
                             >
-                              {loading ? (
-                                <>
-                                  <svg
-                                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle
-                                      className="opacity-25"
-                                      cx="12"
-                                      cy="12"
-                                      r="10"
-                                      stroke="currentColor"
-                                      strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                      className="opacity-75"
-                                      fill="currentColor"
-                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                  </svg>
-                                  Saving...
-                                </>
-                              ) : (
-                                <>
-                                  <Save size={18} className="mr-1" />
-                                  Save Changes
-                                </>
-                              )}
+                              <X size={20} />
                             </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">First Name</label>
+                            <input
+                              type="text"
+                              name="first_name"
+                              value={formData.first_name}
+                              onChange={handleInputChange}
+                              disabled={!isEditing}
+                              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                              required
+                            />
                           </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Last Name</label>
+                            <input
+                              type="text"
+                              name="last_name"
+                              value={formData.last_name}
+                              onChange={handleInputChange}
+                              disabled={!isEditing}
+                              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Username</label>
+                            <input
+                              type="text"
+                              name="username"
+                              value={formData.username}
+                              onChange={handleInputChange}
+                              disabled={!isEditing}
+                              className={`w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 ${usernameError ? 'border-red-500' : ''
+                                }`}
+                              required
+                            />
+                            {usernameError && (
+                              <p className="text-red-500 text-sm mt-1">{usernameError}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Email</label>
+                            <input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              disabled={!isEditing}
+                              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Phone Number</label>
+                            <input
+                              type="tel"
+                              name="phone_number"
+                              value={formData.phone_number}
+                              onChange={handleInputChange}
+                              disabled={!isEditing}
+                              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">National ID</label>
+                            <input
+                              type="text"
+                              name="national_id"
+                              value={formData.national_id}
+                              onChange={handleInputChange}
+                              disabled={!isEditing}
+                              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {renderAddressSection()}
+
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditing(false)}
+                            className="px-4 py-2 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={loading || !!usernameError}
+                            className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                          >
+                            {loading ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                            ) : (
+                              <Save size={20} className="mr-2" />
+                            )}
+                            Save Changes
+                          </button>
                         </div>
                       </form>
                     )}
