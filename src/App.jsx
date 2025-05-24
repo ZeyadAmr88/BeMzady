@@ -231,24 +231,15 @@ function App() {
                         }
                       />
 
-                    {/* Admin Auction Management Route */}
-                    <Route
-                      path="/admin/auctions"
-                      element={
-                        <ProtectedRoute adminOnly>
-                          <AdminAuctionManagement />
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </Layout>
-              </Router>
-            </ToastProvider>
-          </CartProvider>
-        </NotificationProvider>
-
-                      {/* Catch all route for 404 */}
-                      <Route path="*" element={<NotFound />} />
+                      {/* Admin Auction Management Route */}
+                      <Route
+                        path="/admin/auctions"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <AdminAuctionManagement />
+                          </ProtectedRoute>
+                        }
+                      />
                     </Routes>
                   </Layout>
                   <ToastContainer
@@ -268,7 +259,6 @@ function App() {
             </CartProvider>
           </NotificationProvider>
         </AddressProvider>
-
       </AuthProvider>
     </ThemeProvider>
   );

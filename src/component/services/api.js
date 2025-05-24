@@ -17,8 +17,7 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log(
-      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${
-        config.url
+      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url
       }`
     );
     const token = localStorage.getItem("token");
@@ -54,6 +53,27 @@ api.interceptors.response.use(
   }
 );
 
+// // Export all services as a single object
+// export const services = {
+//   auction: auctionService,
+//   bid: bidService,
+//   category: categoryService,
+//   subcategory: subcategoryService,
+//   item: itemService,
+//   user: userService,
+//   cart: cartService,
+//   message: messageService,
+//   recommendation: recommendationService,
+//   notification: {
+//     create: createNotification,
+//     markAsRead,
+//     markAllAsRead,
+//     getUnreadCount,
+//     getUserNotifications
+//   }
+// };
+
+// Individual service exports
 export const auctionService = {
   getAuctions: (params) => api.get("/auctions", { params }),
   getAuctionById: (id) => api.get(`/auctions/${id}`),
@@ -85,12 +105,11 @@ export const auctionService = {
         }
 
         const userResponse = await userService.getUserById(userId);
-        const user = userResponse.data.data || userResponse.data; // Adjust based on actual API response structure
+        const user = userResponse.data.data || userResponse.data;
         const isAdmin = user && user.role === "admin";
 
         const dataToSend = new FormData();
 
-        // Iterate over the original formData and append fields, skipping 'seller' if admin
         for (const pair of formData.entries()) {
           const [key, value] = pair;
           if (!(isAdmin && key === "seller")) {
@@ -113,7 +132,7 @@ export const auctionService = {
   updateAuction: (auctionId, formData) =>
     api.put(`/auctions/${auctionId}`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data", // Assuming update also uses form-data based on create
+        "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     }),
@@ -167,13 +186,10 @@ export const categoryService = {
 };
 
 export const subcategoryService = {
-  // Public endpoints
   getSubcategories: (params) => api.get("/subcategories", { params }),
   getSubcategoryById: (id) => api.get(`/subcategories/${id}`),
   getSubcategoriesByCategory: (categoryId) =>
     api.get(`/subcategories/category/${categoryId}`),
-
-  // Admin-only endpoints (protected)
   createSubcategory: async (subcategoryData) => {
     try {
       const response = await api.post("subcategories", subcategoryData);
@@ -215,7 +231,7 @@ export const itemService = {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      timeout: 60000, // Increase timeout to 60 seconds for file uploads
+      timeout: 60000,
     }),
   getItemReviews: (itemId) => api.get(`/items/${itemId}/reviews`),
   addReview: (itemId, review) => api.post(`/items/${itemId}/reviews`, review),
@@ -224,80 +240,76 @@ export const itemService = {
 };
 
 export const userService = {
-getProfile: () => api.get("/users/MyProfile"),
-getUserById: (userId) => api.get(`/users/${userId}`),
-updateProfile: async (userId, formData) => {
-  try {
-    const response = await api.put(`/users/${userId}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-      }
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
-},
-getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
-addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
-removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
-updatePassword: (currentPassword, newPassword) =>
-  api.patch(`/users/${localStorage.getItem("user_id")}/password`, { currentPassword, newPassword }),
-updateRole: (role) =>
-  api.patch(`/users/${localStorage.getItem("user_id")}/role`, { role }),
-getSellerOverview: () => api.get("/analytics/seller/overview"),
-getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
-getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
-
-// Admin methods from zeyad
-getAllUsers: async (params) => {
-  try {
-    const response = await api.get("users", { params });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
-},
-getOneUser: async (userId) => {
-  try {
-    const response = await api.get(`users/${userId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching user ${userId}:`, error);
-    throw error;
-  }
-},
-updateUser: async (userId, userData) => {
-  try {
-    const response = await api.put(`users/${userId}`, userData);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating user ${userId}:`, error);
-    throw error;
-  }
-},
-deleteUser: async (userId) => {
-  try {
-    const response = await api.delete(`users/${userId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error deleting user ${userId}:`, error);
-    throw error;
-  }
-},
-
-// New checkUsername method from main
-checkUsername: async (username) => {
-  try {
-    const response = await api.get(`/users/check-username/${username}`);
-    return response;
-  } catch (error) {
-    throw error;
-  }
-},
-
+  getProfile: () => api.get("/users/MyProfile"),
+  getUserById: (userId) => api.get(`/users/${userId}`),
+  updateProfile: async (userId, formData) => {
+    try {
+      const response = await api.put(`/users/${userId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
+  addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
+  removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
+  updatePassword: (currentPassword, newPassword) =>
+    api.patch(`/users/${localStorage.getItem("user_id")}/password`, { currentPassword, newPassword }),
+  updateRole: (role) =>
+    api.patch(`/users/${localStorage.getItem("user_id")}/role`, { role }),
+  getSellerOverview: () => api.get("/analytics/seller/overview"),
+  getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
+  getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
+  getAllUsers: async (params) => {
+    try {
+      const response = await api.get("users", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
+  },
+  getOneUser: async (userId) => {
+    try {
+      const response = await api.get(`users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching user ${userId}:`, error);
+      throw error;
+    }
+  },
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await api.put(`users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating user ${userId}:`, error);
+      throw error;
+    }
+  },
+  deleteUser: async (userId) => {
+    try {
+      const response = await api.delete(`users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting user ${userId}:`, error);
+      throw error;
+    }
+  },
+  checkUsername: async (username) => {
+    try {
+      const response = await api.get(`/users/check-username/${username}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+};
 
 export const cartService = {
   getCart: () => {
@@ -312,7 +324,6 @@ export const cartService = {
     if (!userId) {
       return Promise.reject(new Error("User not authenticated"));
     }
-    // Ensure quantity is a valid number
     const validQuantity = parseInt(quantity) || 1;
     return api.post("/cart/add", {
       itemId,
@@ -338,8 +349,6 @@ export const cartService = {
     if (!userId) {
       return Promise.reject(new Error("User not authenticated"));
     }
-
-    // Use the API base URL but with complete configuration
     return api.get("/cart/checkout", {
       headers: {
         Accept: "application/json",
@@ -355,9 +364,7 @@ export const messageService = {
       .get("/messages/conversations")
       .then((response) => {
         console.log("Original getConversations response:", response);
-        // If the response doesn't have the expected structure, normalize it
         if (!response.data || !response.data.data) {
-          // Handle case where data is directly in response.data
           if (response.data && !Array.isArray(response.data)) {
             const firstId = Object.keys(response.data)[0];
             if (
@@ -365,7 +372,6 @@ export const messageService = {
               response.data[firstId] &&
               response.data[firstId].participants
             ) {
-              // Convert object of conversations to array
               const conversations = Object.entries(response.data).map(
                 ([id, conv]) => ({
                   _id: id,
@@ -375,8 +381,6 @@ export const messageService = {
               return { data: { data: conversations } };
             }
           }
-
-          // If data is already an array, wrap it
           if (Array.isArray(response.data)) {
             return { data: { data: response.data } };
           }
@@ -385,7 +389,6 @@ export const messageService = {
       })
       .catch((error) => {
         console.error("Error in getConversations:", error);
-        // Return empty array for consistent handling
         return { data: { data: [] } };
       });
   },
@@ -419,43 +422,12 @@ export const messageService = {
         return Promise.reject(error);
       });
   },
-
-  sendMessage: (recipientId, content) => {
-    if (!recipientId || !content) {
-      console.error("Missing recipientId or content.");
-      return Promise.reject(
-        new Error("Both recipientId and content are required.")
-      );
-    }
-
-    const payload = {
-      recipientId: recipientId,
-      content: content,
-    };
-
-    console.log("Sending message to:", recipientId);
-    console.log("Message payload:", payload);
-
-    return api
-      .post("/messages/", payload)
-      .then((response) => {
-        console.log("✅ Message sent successfully:", response.data);
-        return response;
-      })
-      .catch((error) => {
-        const errData = error.response?.data || error.message;
-        console.error("❌ Error sending message:", errData);
-        return Promise.reject(error);
-      });
-  },
-
   createConversation: (recipientId) => {
     console.log("Creating conversation with:", recipientId);
-    // Keep only the working approach based on user feedback
     return api
       .post("/messages/conversations", {
         recipientId,
-        userId: recipientId, // Include both variations to increase success chance
+        userId: recipientId,
       })
       .then((response) => {
         console.log("Conversation created successfully:", response);
@@ -473,13 +445,11 @@ export const messageService = {
   getUnreadCount: () => {
     try {
       return api.get("/messages/unread-count").then((response) => {
-        // Handle possible response formats
         const count =
           response?.data?.data?.count ||
           response?.data?.count ||
           (typeof response?.data === "number" ? response.data : 0);
 
-        // Normalize the response for consistent use in components
         return {
           data: {
             data: { count },
@@ -493,10 +463,8 @@ export const messageService = {
   },
   searchUsers: (query) => api.get(`/users/search?query=${query}`),
   getUserById: (userId) => {
-    // Try to get user details from the API
     return api.get(`/users/${userId}`).catch((error) => {
       console.error("Error fetching user by ID:", error.response?.data);
-      // Try alternative endpoint if first one fails
       if (error.response?.status === 404) {
         return api.get(`/users/profile/${userId}`);
       }
@@ -513,7 +481,7 @@ export const recommendationService = {
     api.get("/recommendations", { params: filters }),
 };
 
-// === Notification APIs (Merged from src/services/api.js) ===
+// Notification APIs
 export const createNotification = async (notificationData) => {
   try {
     const response = await api.post("notifications/create", notificationData);
