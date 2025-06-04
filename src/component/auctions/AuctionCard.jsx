@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
-import { Clock, Heart } from "lucide-react"
+import { Clock, Heart, BadgeCheck } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
@@ -9,6 +9,7 @@ const AuctionCard = ({ auction }) => {
     const [timeLeft, setTimeLeft] = useState("")
     const [isFavorite, setIsFavorite] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [sellerInfo, setSellerInfo] = useState(null)
     const { user } = useContext(AuthContext)
 
     // Get the first image or use a default placeholder
@@ -55,6 +56,27 @@ const AuctionCard = ({ auction }) => {
 
         checkFavoriteStatus()
     }, [user, auction?._id])
+
+    useEffect(() => {
+        const fetchSellerInfo = async () => {
+            if (auction?.seller) {
+                try {
+                    // Get the seller ID, handling both string and object cases
+                    const sellerId = typeof auction.seller === 'object' ? auction.seller._id : auction.seller
+                    if (!sellerId) {
+                        console.error("No valid seller ID found")
+                        return
+                    }
+                    const response = await userService.getUserById(sellerId)
+                    setSellerInfo(response.data.data)
+                } catch (error) {
+                    console.error("Error fetching seller info:", error)
+                }
+            }
+        }
+
+        fetchSellerInfo()
+    }, [auction?.seller])
 
     const handleFavoriteClick = async (e) => {
         e.preventDefault()
@@ -104,6 +126,11 @@ const AuctionCard = ({ auction }) => {
                         className={`w-5 h-5 ${isFavorite ? "fill-rose-500 text-rose-500" : "text-gray-400"}`}
                     />
                 </button>
+                {sellerInfo?.role === "admin" && (
+                    <div className="absolute top-2 left-2 p-2 bg-gray-800/80 backdrop-blur-sm rounded-full shadow-md">
+                        <BadgeCheck className="w-5 h-5 text-blue-500" />
+                    </div>
+                )}
             </div>
             <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-100 mb-2">
