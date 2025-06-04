@@ -317,23 +317,15 @@ const AdminCategoryManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // Using the GET All Categories API: /api/categories?page={page}&limit={limit}
       const response = await categoryService.getCategories({ page, limit });
-      console.log("🦆response category", response);
+      console.log("Categories response:", response);
 
-      // Assuming the response structure from your image: { data: { results: [], totalCategories: 0, totalPages: 0 } }
       const data = response.data;
-      console.log("🦆data category", data);
+      console.log("Categories data:", data);
 
-      // Check if data.results exists and is an array, otherwise use data itself
-      if (data && Array.isArray(data.results)) {
-        setCategories(data.results);
+      if (data && Array.isArray(data.data)) {
+        setCategories(data.data);
         setTotalPages(data.totalPages || 1);
-      } else if (data && Array.isArray(data)) {
-        // Handle case where response.data is directly the array
-        setCategories(data);
-        // Assuming totalPages is not available in this format, default to 1 or calculate if possible
-        setTotalPages(1);
       } else {
         setCategories([]);
         setTotalPages(1);

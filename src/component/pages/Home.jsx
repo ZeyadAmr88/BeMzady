@@ -10,6 +10,13 @@ import CategoryCard from "../categories/CategoryCard"
 import HeroSection from "../home/HeroSection"
 import HowItWorks from "../home/HowItWorks"
 import Testimonials from "../home/Testimonials"
+// Import Swiper React components and styles
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import '../../styles/swiper.css';
 
 const Home = () => {
     const [featuredAuctions, setFeaturedAuctions] = useState([])
@@ -95,11 +102,51 @@ const Home = () => {
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                    <Swiper
+                        modules={[Navigation, Pagination, Autoplay]}
+                        spaceBetween={30}
+                        slidesPerView={1}
+                        navigation
+                        pagination={{ clickable: true }}
+                        autoplay={{
+                            delay: 3000,
+                            disableOnInteraction: false,
+                        }}
+                        breakpoints={{
+                            640: {
+                                slidesPerView: 2,
+                                spaceBetween: 20,
+                            },
+                            1024: {
+                                slidesPerView: 3,
+                                spaceBetween: 30,
+                            },
+                        }}
+                        className="category-swiper"
+                    >
                         {categories.map((category) => (
-                            <CategoryCard key={category._id} category={category} />
+                            <SwiperSlide key={category._id}>
+                                <div className="relative group cursor-pointer h-[400px]">
+                                    <div className="h-full overflow-hidden rounded-xl">
+                                        <img
+                                            src={category.categoryImage || 'https://placehold.co/400x400/1f2937/e11d48?text=Category'}
+                                            alt={category.name}
+                                            className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110 group-hover:blur-sm"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = 'https://placehold.co/400x400/1f2937/e11d48?text=Category';
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <h3 className="text-white text-2xl font-semibold text-center px-4">
+                                            {category.name}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </SwiperSlide>
                         ))}
-                    </div>
+                    </Swiper>
                 </div>
             </section>
 
@@ -127,7 +174,7 @@ const Home = () => {
                 </div>
             </section>
 
-            
+
             <Testimonials />
         </div>
     )
