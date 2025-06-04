@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
-import { auctionService, userService } from "../services/api"
+import { auctionService, userService, categoryService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCircle, Mail, Phone, MapPin } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
@@ -35,6 +35,7 @@ const AuctionDetail = () => {
   // eslint-disable-next-line no-unused-vars
   const [bids, setBids] = useState([])
   const [user, setUser] = useState(null)
+  const [categoryName, setCategoryName] = useState("")
 
   useEffect(() => {
     // Get user data from localStorage
@@ -55,6 +56,19 @@ const AuctionDetail = () => {
         const response = await auctionService.getAuctionById(id)
         const auctionData = response.data.data
         setAuction(auctionData)
+
+        // Fetch category name if category ID exists
+        if (auctionData.category) {
+          try {
+            const categoryResponse = await categoryService.getCategories()
+            const categories = categoryResponse.data.data
+            const category = categories.find(cat => cat._id === auctionData.category)
+            setCategoryName(category ? category.name : "N/A")
+          } catch (categoryError) {
+            console.error("Error fetching category:", categoryError)
+            setCategoryName("N/A")
+          }
+        }
 
         // Set initial bid amount to current price + minimum increment
         const currentPrice = auctionData.currentPrice || auctionData.startPrice;
@@ -411,7 +425,7 @@ const AuctionDetail = () => {
                       <Tag className="text-rose-600 mr-2" size={18} />
                       <span className="text-gray-700 dark:text-gray-300">
                         <span className="font-medium">Category:</span>{" "}
-                        {auction.category || "N/A"}
+                        {categoryName || "N/A"}
                       </span>
                     </div>
                     <div className="flex items-center">
