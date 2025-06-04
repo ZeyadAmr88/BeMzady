@@ -112,7 +112,7 @@ export const auctionService = {
 
         for (const pair of formData.entries()) {
           const [key, value] = pair;
-          if (!(isAdmin && key === "seller")) {
+          if (!(isAdmin && key === "seller || admin")) {
             dataToSend.append(key, value);
           }
         }
@@ -243,17 +243,13 @@ export const userService = {
   getProfile: () => api.get("/users/MyProfile"),
   getUserById: (userId) => api.get(`/users/${userId}`),
   updateProfile: async (userId, formData) => {
-    try {
-      const response = await api.put(`/users/${userId}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.put(`/users/${userId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+    return response;
   },
   getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
   addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
@@ -302,12 +298,8 @@ export const userService = {
     }
   },
   checkUsername: async (username) => {
-    try {
-      const response = await api.get(`/users/check-username/${username}`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/users/check-username/${username}`);
+    return response;
   },
 };
 
