@@ -88,6 +88,11 @@ const MobileMenu = ({ setIsMenuOpen }) => {
     setIsMenuOpen(false);
   };
 
+  const handleCategoryClick = (categoryId) => {
+    navigate(`/items?category=${categoryId}`);
+    setIsMenuOpen(false);
+  };
+
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
@@ -153,13 +158,12 @@ const MobileMenu = ({ setIsMenuOpen }) => {
                       className="flex items-center justify-between cursor-pointer hover:text-rose-600 transition-colors"
                       onClick={() => setExpandedCategory(expandedCategory === category._id ? null : category._id)}
                     >
-                      <Link
-                        to={`/categories/${category._id}`}
-                        className="flex-grow"
-                        onClick={closeMenu}
+                      <div
+                        className="flex-grow cursor-pointer"
+                        onClick={() => handleCategoryClick(category._id)}
                       >
                         {category.name}
-                      </Link>
+                      </div>
                       {category.subcategories && category.subcategories.length > 0 && (
                         <button className="p-1">
                           {expandedCategory === category._id ?
@@ -227,7 +231,7 @@ const MobileMenu = ({ setIsMenuOpen }) => {
                     onClick={closeMenu}
                   >
 
-                    <LayoutDashboard  size={16} className="mr-3 flex" />
+                    <LayoutDashboard size={16} className="mr-3 flex" />
                     Admin Dashboard
                     <span className="flex items-center py-2 hover:text-rose-600 transition-colors"></span>
                   </Link>
