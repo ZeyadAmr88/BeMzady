@@ -228,7 +228,7 @@ const ItemDetail = () => {
 
             <div className="mb-6">
               <span className="text-3xl font-bold text-rose-600 dark:text-rose-400">
-                ${parseFloat(item.price).toFixed(2)}
+                {parseFloat(item.price).toFixed(2)} EGP 
               </span>
               <span className="ml-2 px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                 {item.item_status}

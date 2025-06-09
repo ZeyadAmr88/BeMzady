@@ -9,19 +9,19 @@ const OrderSummary = ({ subtotal, shipping, tax, total }) => {
             <div className="space-y-3 mb-6">
                 <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>EGP {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                    <span>${shipping.toFixed(2)}</span>
+                    <span>EGP {shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Tax (5%)</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>EGP{tax.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between font-semibold">
                     <span>Total</span>
-                    <span className="text-rose-600">${total.toFixed(2)}</span>
+                    <span className="text-rose-600">EGP {total.toFixed(2)}</span>
                 </div>
             </div>
 
