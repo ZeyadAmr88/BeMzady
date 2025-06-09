@@ -116,7 +116,7 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                   
+ 
 
                       <Route
                         path="profile/completed-auctions"
