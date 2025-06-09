@@ -282,8 +282,8 @@ const Items = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`w-full p-3.5 pl-12 rounded-xl border ${darkMode
-                    ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-rose-500"
-                    : "bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-rose-500"
+                  ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-rose-500"
+                  : "bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-rose-500"
                   } focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all duration-200`}
               />
               <Search
@@ -294,8 +294,8 @@ const Items = () => {
               <button
                 type="submit"
                 className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg ${darkMode
-                    ? "bg-rose-600 hover:bg-rose-700"
-                    : "bg-rose-600 hover:bg-rose-700"
+                  ? "bg-rose-600 hover:bg-rose-700"
+                  : "bg-rose-600 hover:bg-rose-700"
                   } text-white transition-colors duration-200`}
               >
                 <Search size={18} />

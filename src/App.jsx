@@ -101,9 +101,9 @@ function App() {
                       <Route
                         path="/payment/success"
                         element={
-                          <ProtectedRoute>
+                          
                             <OrderSuccess />
-                          </ProtectedRoute>
+                          
                         }
                       />
                       <Route path="/payment/fail" element={<OrderFail />} />
