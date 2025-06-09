@@ -44,7 +44,6 @@ const SellerDashboard = () => {
             setLoading(true)
             // Check if current role is buyer
             if (user.role !== "buyer") {
-                toast.error("Only buyers can upgrade to seller status")
                 setLoading(false)
                 return
             }
