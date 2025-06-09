@@ -87,6 +87,7 @@ const Items = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [searchParams] = useSearchParams()
+  
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category')
@@ -214,15 +215,16 @@ const Items = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
         {/* Mobile Filter Toggle */}
-        <div className="md:hidden w-full mb-4">
+        <div className="lg:hidden w-full">
           <button
-            className={`w-full flex items-center justify-between px-4 py-2 ${darkMode ? "bg-gray-800 border-gray-600" : "bg-white border-gray-300"} border rounded-md shadow-sm`}
+            className={`w-full flex items-center justify-between px-4 py-2.5 ${darkMode ? "bg-gray-800 border-gray-600" : "bg-white border-gray-300"
+              } border rounded-lg shadow-sm`}
             onClick={toggleFilters}
           >
-            <span className="flex items-center">
+            <span className="flex items-center text-sm sm:text-base">
               <Filter className="mr-2 h-4 w-4" />
               Filters & Sort
             </span>
@@ -231,15 +233,15 @@ const Items = () => {
         </div>
 
         {/* Sidebar Filters */}
-        <div className={`${showFilters ? "block" : "hidden"} md:block w-full md:w-64 space-y-6`}>
+        <div className={`${showFilters ? "block" : "hidden"} lg:block w-full lg:w-64 space-y-4 lg:space-y-6`}>
           <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg shadow`}>
-            <h2 className="text-lg font-semibold mb-4">Sort By</h2>
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Sort By</h2>
             <CustomSelect value={sortOption} onChange={handleSortChange} options={sortOptions} />
           </div>
 
           <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-4 rounded-lg shadow`}>
-            <h2 className="text-lg font-semibold mb-4">Categories</h2>
-            <div className="space-y-2">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Categories</h2>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
               {categories.map((category) => (
                 <div key={category._id} className="flex items-center">
                   <CustomCheckbox
@@ -263,8 +265,8 @@ const Items = () => {
 
         {/* Items Grid */}
         <div className="flex-1">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">All Items</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold">All Items</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {items.length} {items.length === 1 ? "item" : "items"} found
             </p>
@@ -274,46 +276,48 @@ const Items = () => {
           <form onSubmit={(e) => {
             e.preventDefault();
             handleSearch(e);
-          }} className="mb-6">
+          }} className="mb-4 sm:mb-6">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full p-3.5 pl-12 rounded-xl border ${darkMode
+                className={`w-full p-3 sm:p-3.5 pl-11 sm:pl-12 rounded-xl border ${darkMode
                   ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-rose-500"
                   : "bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-rose-500"
-                  } focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all duration-200`}
+                  } focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all duration-200 text-sm sm:text-base`}
               />
               <Search
-                size={20}
-                className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? "text-gray-400" : "text-gray-500"
+                size={18}
+                className={`absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 ${darkMode ? "text-gray-400" : "text-gray-500"
                   }`}
               />
               <button
                 type="submit"
-                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg ${darkMode
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-lg ${darkMode
                   ? "bg-rose-600 hover:bg-rose-700"
                   : "bg-rose-600 hover:bg-rose-700"
                   } text-white transition-colors duration-200`}
               >
-                <Search size={18} />
+                <Search size={16} />
               </button>
             </div>
           </form>
 
           {items.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400">No items found matching your filters.</p>
-              <button className="mt-2 text-rose-600 dark:text-rose-400 hover:underline" onClick={clearFilters}>
+            <div className="text-center py-8 sm:py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">No items found matching your filters.</p>
+              <button className="mt-2 text-sm sm:text-base text-rose-600 dark:text-rose-400 hover:underline" onClick={clearFilters}>
                 Clear all filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {items.map((item) => (
-                <ItemCard key={item._id} item={item} />
+                <div key={item._id} className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                  <ItemCard item={item} />
+                </div>
               ))}
             </div>
           )}

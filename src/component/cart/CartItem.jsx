@@ -56,17 +56,19 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, disabled }) => {
                                 {title}
                             </Link>
                         </h3>
-                        
+
                         <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                             {description}
                         </p>
                     </div>
 
                     <div className="text-right mt-2 sm:mt-0">
-                        <div className="text-rose-600 font-semibold">${price.toFixed(2)}</div>
+                        <div className="text-rose-600 font-semibold">
+                            {price.toFixed(2)} EGP
+                        </div>
                         {quantity > 1 && (
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                                Total: ${(price * quantity).toFixed(2)}
+                                Total: EGP {(price * quantity).toFixed(2)}
                             </div>
                         )}
                     </div>

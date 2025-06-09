@@ -214,7 +214,7 @@ const AuctionDetail = () => {
 
     // Check if bid is at least the minimum required amount
     if (bidValue < minBidAmount) {
-      setBidError(`Bid must be at least $${minBidAmount.toFixed(2)}`);
+      setBidError(`Bid must be at least EGP${minBidAmount.toFixed(2)}`);
       return;
     }
 
@@ -230,7 +230,7 @@ const AuctionDetail = () => {
       bidValue = adjustedBidValue;
       // Update the bid amount in the input field
       setBidAmount(bidValue.toString());
-      toast(`Your bid has been adjusted to $${bidValue.toFixed(2)} to match the minimum increment requirement`, {
+      toast(`Your bid has been adjusted to EGP ${bidValue.toFixed(2)} to match the minimum increment requirement`, {
         icon: 'ℹ️',
         style: {
           borderRadius: '10px',
@@ -531,7 +531,7 @@ const AuctionDetail = () => {
                 Current Bid
               </p>
               <p className="text-2xl sm:text-3xl font-bold text-rose-600">
-                ${(auction.currentPrice || auction.startPrice).toFixed(2)}
+                {(auction.currentPrice || auction.startPrice).toFixed(2)} EGP
               </p>
               {auction.buyNowPrice && (
                 <p className="text-xs sm:text-sm mt-1">
@@ -539,7 +539,7 @@ const AuctionDetail = () => {
                     Buy Now:{" "}
                   </span>
                   <span className="font-medium">
-                    ${auction.buyNowPrice.toFixed(2)}
+                    {auction.buyNowPrice.toFixed(2)} EGP
                   </span>
                 </p>
               )}
@@ -548,7 +548,7 @@ const AuctionDetail = () => {
                   Reserve Price:{" "}
                 </span>
                 <span className="font-medium">
-                  ${auction.reservePrice.toFixed(2)}
+                  {auction.reservePrice.toFixed(2)} EGP
                 </span>
               </p>
             </div>
@@ -560,7 +560,7 @@ const AuctionDetail = () => {
                     htmlFor="bidAmount"
                     className="block text-xs sm:text-sm font-medium mb-1"
                   >
-                    Your Bid (Minimum Increment: $
+                    Your Bid (Minimum Increment: EGP
                     {auction.minimumBidIncrement.toFixed(2)})
                   </label>
                   <div className="relative">
@@ -614,7 +614,7 @@ const AuctionDetail = () => {
                     disabled={buyNowLoading}
                     className="w-full mt-2 sm:mt-3 border border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-700 font-medium py-1.5 sm:py-2 px-3 sm:px-4 rounded-md transition-colors text-sm sm:text-base"
                   >
-                    {buyNowLoading ? "Processing..." : `Buy Now for $${auction.buyNowPrice.toFixed(2)}`}
+                    {buyNowLoading ? "Processing..." : `Buy Now for ${auction.buyNowPrice.toFixed(2)} EGP`}
                   </button>
                 )}
               </form>

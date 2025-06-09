@@ -372,20 +372,22 @@ const Cart = () => {
                             <div className="space-y-3">
                                 <div className="flex justify-between">
                                     <span>Subtotal</span>
-                                    <span>${cartSummary.subtotal.toFixed(2)}</span>
+                                    <span>{cartSummary.subtotal.toFixed(2)} EGP</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Shipping</span>
-                                    <span>${cartSummary.shipping.toFixed(2)}</span>
+                                    <span>{cartSummary.shipping.toFixed(2)} EGP</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Tax (5%)</span>
-                                    <span>${cartSummary.tax.toFixed(2)}</span>
+                                    <span>{cartSummary.tax.toFixed(2)} EGP</span>
                                 </div>
                                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
                                     <div className="flex justify-between font-semibold">
                                         <span>Total</span>
-                                        <span>${cartSummary.total.toFixed(2)}</span>
+                                        <div className="text-2xl font-bold text-rose-600">
+                                            {cartSummary.total.toFixed(2)} EGP
+                                        </div>
                                     </div>
                                 </div>
                             </div>
