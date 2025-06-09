@@ -95,7 +95,7 @@ function App() {
                       <Route path="/items" element={<Items />} />
                       <Route path="/items/:id" element={<ItemDetail />} />
                       <Route path="/categories" element={<Categories />} />
-                      <Route path="/category/:id" element={<CategoryPage />} />
+                      <Route path="/categories/:id" element={<CategoryPage />} />
                       <Route path="/notifications" element={<Notifications />} />
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
@@ -116,14 +116,7 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      {/* <Route
-                    path="profile/auctions"
-                    element={
-                      <ProtectedRoute>
-                        <ProfileAuctions />
-                      </ProtectedRoute>
-                    }
-                  /> */}
+                   
 
                       <Route
                         path="profile/completed-auctions"

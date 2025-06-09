@@ -215,11 +215,10 @@ const Navbar = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 backdrop-blur-md ${
-        darkMode
+      className={`sticky top-0 z-50 backdrop-blur-md ${darkMode
           ? "bg-gray-900/80 border-b border-gray-800"
           : "bg-white/80 border-b border-gray-200"
-      } shadow-sm`}
+        } shadow-sm`}
     >
       {/* Add scrollbar styles */}
       <style>{scrollbarStyles}</style>
@@ -268,11 +267,10 @@ const Navbar = () => {
               </button>
               {isCategoryMenuOpen && (
                 <div
-                  className={`absolute left-0 mt-2 w-64 max-h-[70vh] overflow-y-auto rounded-lg shadow-lg ${
-                    darkMode
+                  className={`absolute left-0 mt-2 w-64 max-h-[70vh] overflow-y-auto rounded-lg shadow-lg ${darkMode
                       ? "bg-gray-800/90 backdrop-blur-sm scrollbar-dark"
                       : "bg-white/90 backdrop-blur-sm scrollbar-light"
-                  } ring-1 ring-black/5 z-50`}
+                    } ring-1 ring-black/5 z-50`}
                 >
                   {loading ? (
                     <div className="flex justify-center items-center p-4">
@@ -294,11 +292,10 @@ const Navbar = () => {
                             {/* Category title */}
                             <Link
                               to={`/items?category=${category._id}`}
-                              className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                                darkMode
+                              className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${darkMode
                                   ? "hover:bg-gray-700/50 text-gray-300"
                                   : "hover:bg-gray-100/50 text-gray-600"
-                              }`}
+                                }`}
                               onClick={() => setIsCategoryMenuOpen(false)}
                             >
                               <span>{category.name}</span>
@@ -319,11 +316,10 @@ const Navbar = () => {
                                     <Link
                                       key={subcategory._id}
                                       to={`/subcategory/${subcategory.slug}`}
-                                      className={`block px-3 py-1.5 text-xs rounded transition-colors duration-200 ${
-                                        darkMode
+                                      className={`block px-3 py-1.5 text-xs rounded transition-colors duration-200 ${darkMode
                                           ? "hover:bg-gray-700/50 text-gray-400"
                                           : "hover:bg-gray-100/50 text-gray-500"
-                                      }`}
+                                        }`}
                                       onClick={() =>
                                         setIsCategoryMenuOpen(false)
                                       }
@@ -343,11 +339,10 @@ const Navbar = () => {
                       <Link
                         to="/categories"
                         onClick={() => setIsCategoryMenuOpen(false)}
-                        className={`block px-4 py-2 text-sm font-semibold transition-colors duration-200 ${
-                          darkMode
+                        className={`block px-4 py-2 text-sm font-semibold transition-colors duration-200 ${darkMode
                             ? "text-rose-400 hover:bg-gray-700/50"
                             : "text-rose-600 hover:bg-gray-100/50"
-                        }`}
+                          }`}
                       >
                         View All Categories
                       </Link>
@@ -362,7 +357,7 @@ const Navbar = () => {
                 to="/admin/dashboard"
                 className="relative group text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200"
               >
-                Dashboard
+                Admin Dashboard
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
             )}
@@ -375,11 +370,10 @@ const Navbar = () => {
                 <input
                   type="text"
                   placeholder="Search auctions..."
-                  className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${
-                    darkMode
+                  className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${darkMode
                       ? "bg-gray-800/50 border-gray-700 focus:border-rose-500 focus:ring-rose-500/20"
                       : "bg-gray-100/50 border-gray-200 focus:border-rose-500 focus:ring-rose-500/20"
-                  } focus:outline-none focus:ring-2`}
+                    } focus:outline-none focus:ring-2`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -395,27 +389,16 @@ const Navbar = () => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-200 ${
-                darkMode
-                  ? "bg-gray-800/50 hover:bg-gray-700/50 text-amber-400"
-                  : "bg-gray-100/50 hover:bg-gray-200/50 text-gray-600"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+           
 
             {user ? (
               <>
                 <Link
                   to="/cart"
-                  className={`relative p-2 rounded-full transition-all duration-200 ${
-                    darkMode
+                  className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
                       ? "hover:bg-gray-700/50 text-gray-300"
                       : "hover:bg-gray-200/50 text-gray-600"
-                  }`}
+                    }`}
                 >
                   <ShoppingCart size={20} />
                   {cartCount > 0 && (
@@ -428,11 +411,10 @@ const Navbar = () => {
                 <div className="relative" ref={notificationRef}>
                   <button
                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                    className={`relative p-2 rounded-full transition-all duration-200 ${
-                      darkMode
+                    className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
                         ? "hover:bg-gray-700/50 text-gray-300"
                         : "hover:bg-gray-200/50 text-gray-600"
-                    }`}
+                      }`}
                     aria-label="Notifications"
                   >
                     <Bell size={20} />
@@ -466,9 +448,8 @@ const Navbar = () => {
                   ref={profileRef}
                 >
                   <button
-                    className={`relative p-2 rounded-full transition-all duration-200 ${
-                      darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-200/50"
-                    }`}
+                    className={`relative p-2 rounded-full transition-all duration-200 ${darkMode ? "hover:bg-gray-700/50" : "hover:bg-gray-200/50"
+                      }`}
                     aria-label="User menu"
                   >
                     {user.user_picture ? (
@@ -486,11 +467,10 @@ const Navbar = () => {
                   </button>
                   {/* Dropdown on hover */}
                   <div
-                    className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${
-                      darkMode
+                    className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
                         ? "bg-gray-800/90 backdrop-blur-sm"
                         : "bg-white/90 backdrop-blur-sm"
-                    } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
+                      } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
                   >
                     <div
                       className="py-1"
@@ -507,31 +487,28 @@ const Navbar = () => {
                       </div>
                       <Link
                         to="/profile"
-                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${
-                          darkMode
+                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
                             ? "hover:bg-gray-700/50 text-gray-300"
                             : "hover:bg-gray-100/50 text-gray-600"
-                        }`}
+                          }`}
                       >
                         Profile
                       </Link>
                       <Link
                         to="/products/add"
-                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${
-                          darkMode
+                        className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
                             ? "hover:bg-gray-700/50 text-gray-300"
                             : "hover:bg-gray-100/50 text-gray-600"
-                        }`}
+                          }`}
                       >
                         Add Product
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
-                          darkMode
+                        className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${darkMode
                             ? "hover:bg-gray-700/50 text-gray-300"
                             : "hover:bg-gray-100/50 text-gray-600"
-                        }`}
+                          }`}
                       >
                         Sign out
                       </button>
@@ -542,11 +519,10 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${
-                  darkMode
+                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${darkMode
                     ? "hover:bg-primary-700/50 text-primary-300"
                     : "hover:bg-primary-200/50 text-primary-600"
-                }`}
+                  }`}
               >
                 Login
               </Link>
