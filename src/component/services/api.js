@@ -17,7 +17,8 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log(
-      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url
+      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${
+        config.url
       }`
     );
     const token = localStorage.getItem("token");
@@ -238,6 +239,33 @@ export const itemService = {
   addReview: (itemId, review) => api.post(`/items/${itemId}/reviews`, review),
   updateReview: (itemId, review) => api.put(`/items/${itemId}/reviews`, review),
   deleteReview: (itemId) => api.delete(`/items/${itemId}/reviews`),
+  updateItem: async (itemId, data) => {
+    try {
+      const response = await api.put(`/items/${itemId}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating item:", error);
+      throw error;
+    }
+  },
+  deleteItem: async (itemId) => {
+    try {
+      const response = await api.delete(`/items/${itemId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      throw error;
+    }
+  },
 };
 
 export const userService = {
@@ -247,21 +275,31 @@ export const userService = {
     const response = await api.put(`/users/${userId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
     return response;
   },
-  getFavorites: () => api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
-  addToFavorites: (itemId) => api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
-  removeFromFavorites: (itemId) => api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
+  getFavorites: () =>
+    api.get(`/users/${localStorage.getItem("user_id")}/favorites`),
+  addToFavorites: (itemId) =>
+    api.post(`/users/${localStorage.getItem("user_id")}/favorites`, { itemId }),
+  removeFromFavorites: (itemId) =>
+    api.delete(`/users/${localStorage.getItem("user_id")}/favorites/${itemId}`),
   updatePassword: (currentPassword, newPassword) =>
-    api.patch(`/users/${localStorage.getItem("user_id")}/password`, { currentPassword, newPassword }),
+    api.patch(`/users/${localStorage.getItem("user_id")}/password`, {
+      currentPassword,
+      newPassword,
+    }),
   updateRole: (role) =>
     api.patch(`/users/${localStorage.getItem("user_id")}/role`, { role }),
   getSellerOverview: () => api.get("/analytics/seller/overview"),
-  getSellerItems: (status = "available", page = 1) => api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
-  getSellerAuctions: (status = "completed", page = 1, limit = 5) => api.get(`/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`),
+  getSellerItems: (status = "available", page = 1) =>
+    api.get(`/analytics/seller/my-items?status=${status}&page=${page}`),
+  getSellerAuctions: (status = "completed", page = 1, limit = 5) =>
+    api.get(
+      `/analytics/seller/my-auctions?status=${status}&page=${page}&limit=${limit}`
+    ),
   getAllUsers: async (params) => {
     try {
       const response = await api.get("users", { params });

@@ -4,6 +4,7 @@ import {
   userService,
   categoryService,
   auctionService,
+  itemService,
 } from "../../services/api";
 import Toast from "../../common/Toast";
 
@@ -12,7 +13,8 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState("?");
   const [totalCategories, setTotalCategories] = useState("?");
-  const [totalAuctions, setTotalAuctions] = useState("?"); // Placeholder
+  const [totalAuctions, setTotalAuctions] = useState("?");
+  const [totalItems, setTotalItems] = useState("?");
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({
     show: false,
@@ -86,6 +88,21 @@ const AdminDashboard = () => {
           setTotalAuctions("N/A");
           showToast("Failed to load auction count", "error");
         }
+
+        // Fetch Total Items
+        const itemsResponse = await itemService.getItems({
+          page: 1,
+          limit: 1,
+        });
+        if (itemsResponse.totalItems !== undefined) {
+          setTotalItems(itemsResponse.totalItems);
+        } else if (itemsResponse.data?.totalItems !== undefined) {
+          setTotalItems(itemsResponse.data.totalItems);
+        } else {
+          console.warn("totalItems not found in items response", itemsResponse);
+          setTotalItems("N/A");
+          showToast("Failed to load item count", "error");
+        }
       } catch (err) {
         console.error("Error fetching dashboard counts:", err);
         setError("Failed to load dashboard data.");
@@ -93,6 +110,7 @@ const AdminDashboard = () => {
         setTotalUsers("Error");
         setTotalCategories("Error");
         setTotalAuctions("Error");
+        setTotalItems("Error");
       } finally {
         setIsLoading(false);
       }
@@ -218,6 +236,27 @@ const AdminDashboard = () => {
             </svg>
           }
         />
+        <StatCard
+          title="Total Items"
+          value={totalItems}
+          color="text-purple-600"
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+          }
+          onClick={() => handleNavigation("/admin/items")}
+        />
       </div>
 
       {/* Management Section */}
@@ -281,6 +320,26 @@ const AdminDashboard = () => {
             </svg>
           }
           onClick={() => handleNavigation("/admin/auctions")}
+        />
+        <ManagementCard
+          title="Manage Items"
+          description="View, add, edit, and delete items."
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+          }
+          onClick={() => handleNavigation("/admin/items")}
         />
       </div>
     </div>
