@@ -4,13 +4,15 @@ import { Clock, Heart, BadgeCheck } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
+import { ThemeContext } from "../contexts/ThemeContext"
 
-const AuctionCard = ({ auction }) => {
+const AuctionCard = ({ auction, isHot = false }) => {
     const [timeLeft, setTimeLeft] = useState("")
     const [isFavorite, setIsFavorite] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [sellerInfo, setSellerInfo] = useState(null)
     const { user } = useContext(AuthContext)
+    const { darkMode } = useContext(ThemeContext)
 
     // Get the first image or use a default placeholder
     const imageUrl = auction?.auctionCover ||
@@ -136,13 +138,13 @@ const AuctionCard = ({ auction }) => {
                 <h3 className="text-lg font-semibold text-gray-100 mb-2">
                     {auction.title || "Untitled Auction"}
                 </h3>
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-300">
-                        Current Bid: ${auction.currentBid || auction.startingBid || auction.currentPrice || auction.startPrice || 0}
+                <div className="flex items-center justify-between">
+                    <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                        Current Bid
                     </span>
-                    <span className="text-sm text-gray-300">
-                        {auction.bidCount || auction.bids?.length || 0} bids
-                    </span>
+                    <div className="text-rose-600 font-semibold">
+                        {auction.currentBid || auction.startingBid} EGP
+                    </div>
                 </div>
                 <div className="flex items-center text-sm text-gray-400">
                     <Clock className="w-4 h-4 mr-1" />

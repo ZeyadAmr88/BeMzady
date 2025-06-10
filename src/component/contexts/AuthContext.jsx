@@ -86,6 +86,13 @@ export const AuthProvider = ({ children }) => {
             return { success: true }
         } catch (error) {
             console.error("Login error:", error)
+            // Clear any existing auth data on error
+            localStorage.removeItem("token")
+            localStorage.removeItem("user_id")
+            localStorage.removeItem("user")
+            localStorage.removeItem("persistentLogin")
+            sessionStorage.removeItem("activeSession")
+
             return {
                 success: false,
                 message: error.response?.data?.message || "Login failed. Please try again.",

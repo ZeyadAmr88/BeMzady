@@ -111,7 +111,12 @@ function App() {
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
                         path="/payment/success"
-                        element={<OrderSuccess />}
+
+                        element={
+
+                          <OrderSuccess />
+
+                        }
                       />
                       <Route path="/payment/fail" element={<OrderFail />} />
 

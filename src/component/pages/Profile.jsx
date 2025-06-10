@@ -10,6 +10,7 @@ import ProfileCompletedAuctions from "./ProfileCompletedAuctions"
 import SellerDashboard from "./SellerDashboard"
 import { useAddress } from "../contexts/AddressContext"
 import { toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const Profile = () => {
   const { user, logout, updateUser } = useContext(AuthContext);
@@ -47,10 +48,10 @@ const Profile = () => {
     location.pathname !== "/profile/";
 
   useEffect(() => {
-    if (user) {
-      // Split the address into components if it exists
+    if (user && !isEditing) {
       const addressParts = user.address ? user.address.split(', ') : ['', '', '', ''];
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         first_name: user.first_name || "",
         last_name: user.last_name || "",
         username: user.username || "",
@@ -63,10 +64,10 @@ const Profile = () => {
         phone_number: user.phone_number || "",
         national_id: user.national_id || "",
         user_picture: null
-      });
+      }));
       setPreviewImage(user.user_picture);
     }
-  }, [user]);
+  }, [user, isEditing]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -97,17 +98,42 @@ const Profile = () => {
   };
 
   const checkUsernameAvailability = async (username) => {
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername || trimmedUsername === user?.username) {
+      setUsernameError("");
+      return;
+    }
+
     try {
-      const response = await userService.checkUsername(username);
-      if (response.data.available) {
+      const response = await fetch("https://be-mazady.vercel.app/api/users/check-username", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: trimmedUsername }),
+      });
+
+      const data = await response.json();
+      console.log("API response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to check username");
+      }
+
+      if (data.message === "Username is available") {
         setUsernameError("");
       } else {
         setUsernameError("This username is already taken");
+        toast.error("This username is already taken");
       }
-    } catch (error) {
-      console.error("Error checking username:", error);
+
+    } catch (data) {
+      console.error("Error checking username:", data);
+      setUsernameError(data.message);
+      toast.error(data.message);
     }
   };
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -122,15 +148,10 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Early return if username is invalid
     if (usernameError) {
-      toast.error("Please choose a different username", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Please choose a different username");
       return;
     }
 
@@ -146,53 +167,58 @@ const Profile = () => {
       const response = await userService.updateProfile(user._id, formDataToSend);
 
       if (response.data.status === "success") {
-        updateUser(response.data.data);
-        updateAddress(response.data.data.address);
-        toast.success("Profile updated successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+        const updatedUser = response.data.data;
+
+        // Update user context first
+        updateUser(updatedUser);
+        updateAddress(updatedUser.address);
+
+        // Update local state with the new user data
+        const addressParts = updatedUser.address ? updatedUser.address.split(', ') : ['', '', '', ''];
+
+        // Update form data using functional update
+        setFormData(prev => ({
+          ...prev,
+          first_name: updatedUser.first_name || "",
+          last_name: updatedUser.last_name || "",
+          username: updatedUser.username || "",
+          email: updatedUser.email || "",
+          street: addressParts[0] || "",
+          city: addressParts[1] || "",
+          building: addressParts[2] || "",
+          floor: addressParts[3] || "",
+          address: updatedUser.address || "",
+          phone_number: updatedUser.phone_number || "",
+          national_id: updatedUser.national_id || "",
+          user_picture: null
+        }));
+
+        // Update preview image
+        setPreviewImage(updatedUser.user_picture || null);
+
+        // Close the form before navigation
         setIsEditing(false);
+
+        // Show success message
+        toast.success("Profile updated successfully!");
+
+        // Navigate after form is closed
+        navigate("/profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      // Check for username error in the response
+
+      // Handle username validation errors
       if (error.response?.data?.errors) {
         const usernameError = error.response.data.errors.find(err => err.path === 'username');
         if (usernameError) {
           setUsernameError(usernameError.msg);
-          toast.error(usernameError.msg, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
+          toast.error(usernameError.msg);
         } else {
-          toast.error("Failed to update profile", {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
+          toast.error("Failed to update profile");
         }
       } else {
-        toast.error("Failed to update profile", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.error("Failed to update profile");
       }
     } finally {
       setLoading(false);
@@ -201,14 +227,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     logout();
-    toast.info("Logged out successfully", {
-      position: "top-right",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
+    toast.info("Logged out successfully");
     navigate("/");
   };
 
@@ -250,6 +269,7 @@ const Profile = () => {
         newPassword: "",
         confirmPassword: ""
       });
+      setIsEditing(false); // Close form immediately after password update
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update password", {
         position: "top-right",
@@ -401,29 +421,7 @@ const Profile = () => {
                 <span>Security</span>
               </button>
 
-              {/* <Link
-                to="/profile/auctions"
-                className="w-full flex items-center px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Package size={18} className="mr-3" />
-                <span>My Auctions</span>
-              </Link> */}
 
-              {/* <Link
-                to="/profile/completed-auctions"
-                className="w-full flex items-center px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Gavel size={18} className="mr-3" />
-                <span>Completed Auctions</span>
-              </Link>
-
-              <Link
-                to="/profile/bids"
-                className="w-full flex items-center px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Gavel size={18} className="mr-3" />
-                <span>My Bids</span>
-              </Link> */}
 
               <Link
                 to="/profile/favorites"

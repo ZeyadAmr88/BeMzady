@@ -48,7 +48,8 @@ api.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem("token");
       localStorage.removeItem("user_id");
-      window.location.href = "/login";
+      // Instead of forcing a page reload, we'll let the AuthContext handle the navigation
+      return Promise.reject(error);
     }
     return Promise.reject(error);
   }
