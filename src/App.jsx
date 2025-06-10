@@ -101,9 +101,9 @@ function App() {
                       <Route
                         path="/payment/success"
                         element={
-                          
-                            <OrderSuccess />
-                          
+
+                          <OrderSuccess />
+
                         }
                       />
                       <Route path="/payment/fail" element={<OrderFail />} />
@@ -116,7 +116,7 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
- 
+
 
                       <Route
                         path="profile/completed-auctions"

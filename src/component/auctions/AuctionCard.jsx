@@ -4,13 +4,15 @@ import { Clock, Heart, BadgeCheck } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
+import { ThemeContext } from "../contexts/ThemeContext"
 
-const AuctionCard = ({ auction }) => {
+const AuctionCard = ({ auction, isHot = false }) => {
     const [timeLeft, setTimeLeft] = useState("")
     const [isFavorite, setIsFavorite] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [sellerInfo, setSellerInfo] = useState(null)
     const { user } = useContext(AuthContext)
+    const { darkMode } = useContext(ThemeContext)
 
     // Get the first image or use a default placeholder
     const imageUrl = auction?.auctionCover ||
