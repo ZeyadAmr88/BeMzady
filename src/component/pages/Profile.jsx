@@ -98,19 +98,42 @@ const Profile = () => {
   };
 
   const checkUsernameAvailability = async (username) => {
-    if (!username || username === user?.username) {
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername || trimmedUsername === user?.username) {
       setUsernameError("");
       return;
     }
 
     try {
-      const response = await userService.checkUsername(username);
-      setUsernameError(response.data.available ? "" : "This username is already taken");
-    } catch (error) {
-      console.error("Error checking username:", error);
-      setUsernameError("Error checking username availability");
+      const response = await fetch("https://be-mazady.vercel.app/api/users/check-username", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: trimmedUsername }),
+      });
+
+      const data = await response.json();
+      console.log("API response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to check username");
+      }
+
+      if (data.message === "Username is available") {
+        setUsernameError("");
+      } else {
+        setUsernameError("This username is already taken");
+        toast.error("This username is already taken");
+      }
+
+    } catch (data) {
+      console.error("Error checking username:", data);
+      setUsernameError(data.message);
+      toast.error(data.message);
     }
   };
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
