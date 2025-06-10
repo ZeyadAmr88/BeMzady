@@ -4,7 +4,7 @@ import { itemService, userService } from "../services/api";
 import { AuthContext } from "../contexts/AuthContext";
 import { ThemeContext } from "../contexts/ThemeContext";
 import { CartContext } from "../contexts/CartContext";
-import { Heart, ShoppingCart, ArrowLeft, User, Loader, Share2 } from "lucide-react";
+import { Heart, ShoppingCart, ArrowLeft, User, Loader, Share2, Mail, MapPin } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ItemReviews from "../items/ItemReviews";
 import RecommendationList from "../recommendations/RecommendationList";
@@ -16,7 +16,6 @@ const ItemDetail = () => {
   const { darkMode } = useContext(ThemeContext);
   const { addToCart } = useContext(CartContext);
   const [item, setItem] = useState(null);
-  const [owner, setOwner] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -31,16 +30,6 @@ const ItemDetail = () => {
         const response = await itemService.getItemById(id);
         const itemData = response.data.data;
         setItem(itemData);
-
-        // Fetch owner information
-        if (itemData.owner) {
-          try {
-            const ownerResponse = await userService.getUserById(itemData.owner);
-            setOwner(ownerResponse.data.data);
-          } catch (ownerError) {
-            console.error("Error fetching owner details:", ownerError);
-          }
-        }
 
         // Check if item is in user's favorites
         if (user) {
@@ -63,9 +52,17 @@ const ItemDetail = () => {
     fetchItemDetails();
   }, [id, user]);
 
+  const handleAuthRequired = () => {
+    toast.error("Please log in to continue", {
+      duration: 3000,
+      position: "top-center",
+    });
+    navigate("/login", { state: { from: `/items/${id}` } });
+  };
+
   const toggleFavorite = async () => {
     if (!user) {
-      toast.info("Please log in to add items to favorites");
+      handleAuthRequired();
       return;
     }
 
@@ -88,7 +85,7 @@ const ItemDetail = () => {
 
   const handleAddToCart = async () => {
     if (!user) {
-      toast.info("Please log in to add items to cart");
+      handleAuthRequired();
       return;
     }
 
@@ -228,7 +225,7 @@ const ItemDetail = () => {
 
             <div className="mb-6">
               <span className="text-3xl font-bold text-rose-600 dark:text-rose-400">
-                {parseFloat(item.price).toFixed(2)} EGP 
+                {parseFloat(item.price).toFixed(2)} EGP
               </span>
               <span className="ml-2 px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                 {item.item_status}
@@ -247,29 +244,28 @@ const ItemDetail = () => {
               </p>
             </div>
 
-            {owner && (
+            {item.owner && (
               <div className="mb-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
                 <h2 className="text-lg font-medium mb-2">Seller Information</h2>
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center mr-3">
-                    {owner.profilePicture ? (
-                      <img
-                        src={owner.profilePicture}
-                        alt={owner.username}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <User
-                        size={20}
-                        className="text-gray-500 dark:text-gray-400"
-                      />
-                    )}
+                    <User
+                      size={20}
+                      className="text-gray-500 dark:text-gray-400"
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">{owner.username}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {owner.location || "Location not specified"}
-                    </p>
+                    <div className="flex items-center mb-1">
+                      <User size={16} className="text-gray-500 dark:text-gray-400 mr-2" />
+                      <p className="font-medium">{item.owner.username}</p>
+                    </div>
+
+                    <div className="flex items-center">
+                      <MapPin size={16} className="text-gray-500 dark:text-gray-400 mr-2" />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {item.owner.address || "Location not specified"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -278,32 +274,43 @@ const ItemDetail = () => {
             {item.item_status === "available" && (
               <div className="mt-6">
                 <div className="flex items-center mb-4">
-                  <label htmlFor="quantity" className="mr-4 font-medium">
+                  <label htmlFor="quantity" className="mr-4 font-medium text-gray-700 dark:text-gray-300">
                     Quantity:
                   </label>
-                  <div className="flex items-center">
+                  <div className="flex items-center border rounded-lg overflow-hidden shadow-sm">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2 rounded-l-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      className="p-2 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={quantity <= 1}
+                      aria-label="Decrease quantity"
                     >
-                      -
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
                     </button>
                     <input
                       type="number"
                       id="quantity"
                       min="1"
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                      className={`w-16 text-center py-2 border-y ${darkMode
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        setQuantity(Math.max(1, value));
+                      }}
+                      className={`w-16 text-center py-2 border-x focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent ${darkMode
                         ? "bg-gray-700 border-gray-600 text-white"
                         : "bg-white border-gray-200 text-gray-900"
                         }`}
+                      aria-label="Item quantity"
                     />
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="p-2 rounded-r-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      className="p-2 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                      aria-label="Increase quantity"
                     >
-                      +
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -311,7 +318,7 @@ const ItemDetail = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart}
-                  className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center justify-center disabled:opacity-70"
+                  className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center justify-center disabled:opacity-70 transition-colors duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                   {addingToCart ? (
                     <Loader size={20} className="animate-spin mr-2" />
@@ -337,16 +344,16 @@ const ItemDetail = () => {
         <RecommendationList
           itemId={item._id}
           title="Similar Items You Might Like"
-          viewAllLink={`/auctions?category=${item.category}`}
+          viewAllLink={`/items?category=${item.category?._id}`}
         />
       )}
 
       {/* If you also want to show category-based recommendations */}
       {item && item.category && (
         <RecommendationList
-          categoryId={item.category}
-          title={`More Items in ${typeof item.category === 'object' ? item.category.name || 'This Category' : 'This Category'}`}
-          viewAllLink={`/auctions?category=${typeof item.category === 'object' ? item.category._id : item.category}`}
+          categoryId={item.category._id}
+          title={`More Items in ${item.category.name}`}
+          viewAllLink={`/items?category=${item.category._id}`}
         />
       )}
     </div>
