@@ -44,7 +44,9 @@ import AdminUserManagement from "./component/admin/AdminUserManagement";
 import AdminUserDetails from "./component/admin/AdminUserDetails";
 import AdminCategoryManagement from "./component/admin/AdminCategoryManagement";
 import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManagement";
+import AdminItemManagement from "./component/pages/admin/AdminItemManagement";
 import NotFound from "./component/pages/NotFound";
+import AdminItemDetailPage from "./component/pages/admin/AdminItemDetailPage";
 
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
@@ -73,7 +75,10 @@ function App() {
                         path="/forgot-password"
                         element={<ForgotPassword />}
                       />
-                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route
+                        path="/reset-password"
+                        element={<ResetPassword />}
+                      />
                       <Route path="/auctions" element={<Auctions />} />
                       <Route path="/auctions/:id" element={<AuctionDetail />} />
                       <Route
@@ -95,16 +100,18 @@ function App() {
                       <Route path="/items" element={<Items />} />
                       <Route path="/items/:id" element={<ItemDetail />} />
                       <Route path="/categories" element={<Categories />} />
-                      <Route path="/categories/:id" element={<CategoryPage />} />
-                      <Route path="/notifications" element={<Notifications />} />
+                      <Route
+                        path="/categories/:id"
+                        element={<CategoryPage />}
+                      />
+                      <Route
+                        path="/notifications"
+                        element={<Notifications />}
+                      />
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
                         path="/payment/success"
-                        element={
-                          
-                            <OrderSuccess />
-                          
-                        }
+                        element={<OrderSuccess />}
                       />
                       <Route path="/payment/fail" element={<OrderFail />} />
 
@@ -116,7 +123,6 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                   
 
                       <Route
                         path="profile/completed-auctions"
@@ -204,6 +210,16 @@ function App() {
                         }
                       />
 
+                      {/* Admin Item Management Route */}
+                      <Route
+                        path="/admin/items/"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <AdminItemManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+
                       {/* Admin User Management Route */}
                       <Route
                         path="/admin/users"
@@ -230,6 +246,16 @@ function App() {
                         element={
                           <ProtectedRoute adminOnly>
                             <AdminAuctionManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Admin Item Detail Route */}
+                      <Route
+                        path="/admin/items/:itemId"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <AdminItemDetailPage />
                           </ProtectedRoute>
                         }
                       />
