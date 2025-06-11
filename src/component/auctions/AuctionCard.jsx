@@ -6,7 +6,7 @@ import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { ThemeContext } from "../contexts/ThemeContext"
 
-const AuctionCard = ({ auction, isHot = false }) => {
+const AuctionCard = ({ auction = false }) => {
     const [timeLeft, setTimeLeft] = useState("")
     const [isFavorite, setIsFavorite] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -143,7 +143,7 @@ const AuctionCard = ({ auction, isHot = false }) => {
                         Current Bid
                     </span>
                     <div className="text-rose-600 font-semibold">
-                        {auction.currentBid || auction.startingBid} EGP
+                        {auction.currentPrice || auction.startingBid} EGP
                     </div>
                 </div>
                 <div className="flex items-center text-sm text-gray-400">
