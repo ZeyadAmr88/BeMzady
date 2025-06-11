@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
 import { Clock, Heart, BadgeCheck } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { formatCairoRelativeTime } from "../utils/dateUtils"
 import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { ThemeContext } from "../contexts/ThemeContext"
@@ -22,17 +22,15 @@ const AuctionCard = ({ auction = false }) => {
 
     useEffect(() => {
         const updateTimeLeft = () => {
-            // Try both endTime and endDate fields
-            const endTime = auction?.endTime || auction?.endDate
-            if (endTime) {
-                const endDate = new Date(endTime)
+            if (auction.endDate) {
+                const endDate = new Date(auction.endDate)
                 const now = new Date()
                 const distance = endDate - now
 
                 if (distance < 0) {
                     setTimeLeft("Auction ended")
                 } else {
-                    setTimeLeft(formatDistanceToNow(endDate, { addSuffix: true }))
+                    setTimeLeft(formatCairoRelativeTime(endDate))
                 }
             }
         }
@@ -41,7 +39,7 @@ const AuctionCard = ({ auction = false }) => {
         const timer = setInterval(updateTimeLeft, 1000)
 
         return () => clearInterval(timer)
-    }, [auction?.endTime, auction?.endDate])
+    }, [auction.endTime])
 
     useEffect(() => {
         const checkFavoriteStatus = async () => {

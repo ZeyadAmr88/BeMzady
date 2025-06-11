@@ -5,6 +5,7 @@ import { AuthContext } from "../contexts/AuthContext"
 import { userService } from "../services/api"
 import { Heart, Eye, X } from 'lucide-react'
 import { toast } from "react-hot-toast"
+import { formatCairoDateOnly } from "../utils/dateUtils"
 
 const ProfileFavorites = () => {
     // eslint-disable-next-line no-unused-vars
@@ -99,7 +100,7 @@ const ProfileFavorites = () => {
                                                     ${item.price?.toFixed(2) || "N/A"}
                                                 </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    Added on {new Date(item.createdAt).toLocaleDateString()}
+                                                    Added on {formatCairoDateOnly(item.createdAt)}
                                                 </p>
                                             </div>
                                             <div className="flex items-center space-x-2">

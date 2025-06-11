@@ -5,7 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom"
 import { auctionService, userService, categoryService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCircle, Mail, Phone, MapPin } from "lucide-react"
-import { formatDistanceToNow, format } from "date-fns"
+import { formatCairoRelativeTime, formatCairoFullDateTime } from "../utils/dateUtils"
 import BidHistory from "../auctions/BidHistory"
 import ItemReviews from "../items/ItemReviews"
 import RelatedAuctions from "../auctions/RelatedAuctions"
@@ -143,7 +143,7 @@ const AuctionDetail = () => {
         return;
       }
 
-      setTimeLeft(formatDistanceToNow(endDate, { addSuffix: true }));
+      setTimeLeft(formatCairoRelativeTime(endDate));
     };
 
     updateTimeLeft();
@@ -432,14 +432,14 @@ const AuctionDetail = () => {
                       <Calendar className="text-rose-600 mr-2" size={18} />
                       <span className="text-gray-700 dark:text-gray-300">
                         <span className="font-medium">Start Date:</span>{" "}
-                        {format(new Date(auction.startDate), "PPP")}
+                        {formatCairoFullDateTime(auction.startDate)}
                       </span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="text-rose-600 mr-2" size={18} />
                       <span className="text-gray-700 dark:text-gray-300">
                         <span className="font-medium">End Date:</span>{" "}
-                        {format(new Date(auction.endDate), "PPP")}
+                        {formatCairoFullDateTime(auction.endDate)}
                       </span>
                     </div>
                   </div>
@@ -548,7 +548,7 @@ const AuctionDetail = () => {
                   Reserve Price:{" "}
                 </span>
                 <span className="font-medium">
-                  {auction.reservePrice.toFixed(2)} EGP
+                  {auction.reservePrice ? auction.reservePrice.toFixed(2) : 'N/A'} EGP
                 </span>
               </p>
             </div>

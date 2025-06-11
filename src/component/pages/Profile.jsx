@@ -165,8 +165,8 @@ const Profile = () => {
       });
 
       const response = await userService.updateProfile(user._id, formDataToSend);
-
-      if (response.data.status === "success") {
+      console.log("res++",response.data)
+      if (response.data.success === true) {
         const updatedUser = response.data.data;
 
         // Update user context first
