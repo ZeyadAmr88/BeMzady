@@ -8,6 +8,7 @@ import {
 import ItemFormModal from "../../common/ItemFormModal";
 import ConfirmationModal from "../../common/ConfirmationModal";
 import Toast from "../../common/Toast";
+import { formatCairoFullDateTime } from "../../utils/dateUtils";
 
 const AdminItemDetailPage = () => {
   const { itemId } = useParams();
@@ -391,13 +392,12 @@ const AdminItemDetailPage = () => {
               </span>
               <span
                 className={`ml-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
-                ${
-                  item.item_status === "available"
+                ${item.item_status === "available"
                     ? "bg-green-100 text-green-800"
                     : item.item_status === "sold"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
+                      ? "bg-red-100 text-red-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
               >
                 {item.item_status}
               </span>
@@ -428,11 +428,11 @@ const AdminItemDetailPage = () => {
             </p>
             <p className="text-gray-700 dark:text-gray-300 text-sm mt-4">
               <span className="font-semibold">Created At:</span>{" "}
-              {new Date(item.createdAt).toLocaleString()}
+              {formatCairoFullDateTime(item.createdAt)}
             </p>
             <p className="text-gray-700 dark:text-gray-300 text-sm">
               <span className="font-semibold">Last Updated:</span>{" "}
-              {new Date(item.updatedAt).toLocaleString()}
+              {formatCairoFullDateTime(item.updatedAt)}
             </p>
 
             <div className="flex space-x-4 mt-8">

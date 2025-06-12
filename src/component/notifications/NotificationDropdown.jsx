@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { NotificationContext } from "../contexts/NotificationContext";
 import { ThemeContext } from "../contexts/ThemeContext";
-import { formatDistanceToNow } from "date-fns";
+import { formatCairoRelativeTime } from "../utils/dateUtils";
 import { Bell, CheckCircle } from "lucide-react";
 import {
   getUserNotifications,
@@ -84,9 +84,8 @@ const NotificationDropdown = () => {
 
   return (
     <div
-      className={`absolute right-0 mt-2 w-80 rounded-md shadow-lg ${
-        darkMode ? "bg-gray-800" : "bg-white"
-      } ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto`}
+      className={`absolute right-0 mt-2 w-80 rounded-md shadow-lg ${darkMode ? "bg-gray-800" : "bg-white"
+        } ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-y-auto`}
     >
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Notifications</h3>
@@ -115,9 +114,8 @@ const NotificationDropdown = () => {
           notifications.slice(0, 4).map((notification) => (
             <div
               key={notification._id}
-              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                !notification.isRead ? "bg-rose-50 dark:bg-gray-700" : ""
-              }`}
+              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${!notification.isRead ? "bg-rose-50 dark:bg-gray-700" : ""
+                }`}
             >
               <div className="flex items-start">
                 <div className="flex-shrink-0 mt-1">
@@ -125,19 +123,16 @@ const NotificationDropdown = () => {
                 </div>
                 <div className="ml-3 flex-1">
                   <div
-                    className={`text-sm ${
-                      !notification.isRead
-                        ? "font-medium text-gray-900 dark:text-gray-100"
-                        : "text-gray-600 dark:text-gray-400"
-                    }`}
+                    className={`text-sm ${!notification.isRead
+                      ? "font-medium text-gray-900 dark:text-gray-100"
+                      : "text-gray-600 dark:text-gray-400"
+                      }`}
                   >
                     {notification.message}
                   </div>
                   <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex justify-between items-center">
                     <span>
-                      {formatDistanceToNow(new Date(notification.createdAt), {
-                        addSuffix: true,
-                      })}
+                      {formatCairoRelativeTime(notification.createdAt)}
                     </span>
                     {!notification.isRead && (
                       <button

@@ -47,6 +47,8 @@ import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManageme
 import AdminItemManagement from "./component/pages/admin/AdminItemManagement";
 import NotFound from "./component/pages/NotFound";
 import AdminItemDetailPage from "./component/pages/admin/AdminItemDetailPage";
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
 
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
@@ -110,7 +112,7 @@ function App() {
                       />
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
-                        path="/payment/success"
+                        path="payment/success"
 
                         element={
 
@@ -261,6 +263,22 @@ function App() {
                         element={
                           <ProtectedRoute adminOnly>
                             <AdminItemDetailPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/my-orders"
+                        element={
+                          <ProtectedRoute>
+                            <MyOrders />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/orders/:orderId"
+                        element={
+                          <ProtectedRoute>
+                            <OrderDetails />
                           </ProtectedRoute>
                         }
                       />

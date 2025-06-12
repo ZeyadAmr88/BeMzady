@@ -1,12 +1,14 @@
 "use client"
 
 import React, { useState, useEffect, useContext } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { userService } from "../services/api"
 import { Package, Gavel, DollarSign, TrendingUp, AlertCircle, Star, Tag, Calendar, Edit, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "react-hot-toast"
 import { AuthContext } from "../contexts/AuthContext"
+import { categoryService } from "../services/api"
+import { convertToUTC } from "../utils/dateUtils"
 
 const SellerDashboard = () => {
     const [overview, setOverview] = useState(null)
@@ -15,12 +17,12 @@ const SellerDashboard = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const { user } = useContext(AuthContext)
-    const navigate = useNavigate()
     const [editingItem, setEditingItem] = useState(null)
     const [deleteConfirmItem, setDeleteConfirmItem] = useState(null)
     const [editingAuction, setEditingAuction] = useState(null)
     const [deleteConfirmAuction, setDeleteConfirmAuction] = useState(null)
     const [auctionStatus, setAuctionStatus] = useState("all")
+    const [categories, setCategories] = useState([])
 
     useEffect(() => {
         // Check if user is authenticated
@@ -38,6 +40,21 @@ const SellerDashboard = () => {
             fetchDashboardData()
         }
     }, [user])
+
+    useEffect(() => {
+        // Fetch categories when component mounts
+        const fetchCategories = async () => {
+            try {
+                const response = await categoryService.getCategories({ limit: 100 })
+                setCategories(response.data.data || [])
+            } catch (error) {
+                console.error("Error fetching categories:", error)
+                toast.error("Failed to load categories")
+            }
+        }
+
+        fetchCategories()
+    }, [])
 
     const updateToSellerRole = async () => {
         try {
@@ -183,12 +200,19 @@ const SellerDashboard = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    buyNowPrice: formData.buyNowPrice,
                     title: formData.title,
-                    endDate: formData.endDate,
+                    description: formData.description,
+                    category: formData.category,
+                    startPrice: parseFloat(formData.startPrice),
+                    buyNowPrice: parseFloat(formData.buyNowPrice),
+                    minimumBidIncrement: parseFloat(formData.minimumBidIncrement),
+                    startDate: convertToUTC(formData.startDate),
+                    endDate: convertToUTC(formData.endDate),
                     status: formData.status
                 })
             })
+            console.log("oh yah");
+
 
             if (!response.ok) {
                 const errorData = await response.json()
@@ -196,10 +220,14 @@ const SellerDashboard = () => {
             }
 
             const data = await response.json()
-            if (data.status === 'success') {
+            console.log("dddd", data.success);
+
+            if (data.success === true) {
+                console.log("yaraaab");
+
                 toast.success('Auction updated successfully')
+                fetchDashboardData() // Refresh the dashboard data
                 setEditingAuction(null)
-                navigate('/dashboard')
             }
         } catch (error) {
             console.error('Error updating auction:', error)
@@ -386,6 +414,7 @@ const SellerDashboard = () => {
                             e.preventDefault()
                             const formData = new FormData(e.target)
                             handleUpdateItem(editingItem._id, formData)
+
                         }}>
                             <div className="space-y-4">
                                 <div>
@@ -440,6 +469,7 @@ const SellerDashboard = () => {
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700"
+
                                 >
                                     Update Item
                                 </button>
@@ -553,7 +583,12 @@ const SellerDashboard = () => {
                             e.preventDefault()
                             const formData = {
                                 title: e.target.title.value,
-                                buyNowPrice: parseFloat(e.target.buyNowPrice.value),
+                                description: e.target.description.value,
+                                category: e.target.category.value,
+                                startPrice: e.target.startPrice.value,
+                                buyNowPrice: e.target.buyNowPrice.value,
+                                minimumBidIncrement: e.target.minimumBidIncrement.value,
+                                startDate: e.target.startDate.value,
                                 endDate: e.target.endDate.value,
                                 status: e.target.status.value
                             }
@@ -571,11 +606,38 @@ const SellerDashboard = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Buy Now Price</label>
+                                    <label className="block text-sm font-medium mb-1">Description</label>
                                     <input
-                                        type="number"
-                                        name="buyNowPrice"
-                                        defaultValue={editingAuction.buyNowPrice}
+                                        type="text"
+                                        name="description"
+                                        defaultValue={editingAuction.description}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Category</label>
+                                    <select
+                                        name="category"
+                                        defaultValue={editingAuction.category}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    >
+                                        <option value="">Select a category</option>
+                                        {categories.map((category) => (
+                                            <option key={category._id} value={category._id}>
+                                                {category.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Start Date</label>
+                                    <input
+                                        type="datetime-local"
+                                        name="startDate"
+                                        defaultValue={format(new Date(editingAuction.startDate), "yyyy-MM-dd'T'HH:mm")}
                                         className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                                         required
                                     />
@@ -586,6 +648,54 @@ const SellerDashboard = () => {
                                         type="datetime-local"
                                         name="endDate"
                                         defaultValue={format(new Date(editingAuction.endDate), "yyyy-MM-dd'T'HH:mm")}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Cover Image</label>
+                                    <input
+                                        type="file"
+                                        name="auctionCover"
+                                        accept="image/*"
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Images</label>
+                                    <input
+                                        type="file"
+                                        name="auctionImages"
+                                        accept="image/*"
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Start Price</label>
+                                    <input
+                                        type="text"
+                                        name="startPrice"
+                                        defaultValue={editingAuction.startPrice}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Buy Now Price</label>
+                                    <input
+                                        type="number"
+                                        name="buyNowPrice"
+                                        defaultValue={editingAuction.buyNowPrice}
+                                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Minimum Bid Increment</label>
+                                    <input
+                                        type="number"
+                                        name="minimumBidIncrement"
+                                        defaultValue={editingAuction.minimumBidIncrement}
                                         className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                                         required
                                     />

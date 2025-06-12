@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext } from "react"
 import { itemService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { Star, User, Edit, Trash, AlertCircle, X } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { formatCairoRelativeTime } from "../utils/dateUtils"
 import { toast } from "react-hot-toast"
 
 const ItemReviews = ({ itemId }) => {
@@ -323,8 +323,8 @@ const ItemReviews = ({ itemId }) => {
                     </div>
 
                     <p className="text-gray-700 dark:text-gray-300">{userReview?.comment}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        {formatDistanceToNow(new Date(userReview?.updatedAt || userReview?.createdAt), { addSuffix: true })}
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatCairoRelativeTime(userReview?.updatedAt || userReview?.createdAt)}
                     </p>
                 </div>
             )}
@@ -402,7 +402,7 @@ const ItemReviews = ({ itemId }) => {
                                         </div>
                                     )}
                                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
+                                        {formatCairoRelativeTime(review.createdAt)}
                                     </p>
                                 </div>
                                 <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>

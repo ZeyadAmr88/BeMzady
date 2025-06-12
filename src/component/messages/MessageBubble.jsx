@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatCairoRelativeTime } from "../utils/dateUtils";
 import { User, Check, CheckCheck, Clock } from "lucide-react";
 
 const MessageBubble = ({ message, isOwn }) => {
   // Handle possible different message formats
   const formattedTime = message.createdAt
-    ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
+    ? formatCairoRelativeTime(message.createdAt)
     : "";
 
   // Handle possible different sender formats
@@ -38,19 +38,16 @@ const MessageBubble = ({ message, isOwn }) => {
         )}
 
         <div
-          className={`rounded-lg px-4 py-2 ${
-            isOwn
-              ? `bg-rose-600 text-white rounded-br-none ${
-                  isTemporary ? "opacity-75" : ""
-                }`
-              : "bg-gray-200 dark:bg-gray-700 rounded-bl-none"
-          }`}
+          className={`rounded-lg px-4 py-2 ${isOwn
+            ? `bg-rose-600 text-white rounded-br-none ${isTemporary ? "opacity-75" : ""
+            }`
+            : "bg-gray-200 dark:bg-gray-700 rounded-bl-none"
+            }`}
         >
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
           <div
-            className={`text-xs mt-1 flex items-center ${
-              isOwn ? "text-rose-200" : "text-gray-500 dark:text-gray-400"
-            }`}
+            className={`text-xs mt-1 flex items-center ${isOwn ? "text-rose-200" : "text-gray-500 dark:text-gray-400"
+              }`}
           >
             <span>{formattedTime}</span>
             {isOwn && (
