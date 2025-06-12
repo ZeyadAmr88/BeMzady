@@ -12,6 +12,7 @@ import RelatedAuctions from "../auctions/RelatedAuctions"
 import { toast } from "react-hot-toast"
 import ContactButton from "../messages/ContactButton";
 import { checkStripeRedirect, redirectToStripePayment } from "../utils/stripeHandler"
+import { cairoToUTC } from "../utils/dateUtils"
 
 const AuctionDetail = () => {
   const { id } = useParams()
@@ -333,7 +334,7 @@ const AuctionDetail = () => {
     );
   }
 
-  const isAuctionEnded = new Date() >= new Date(auction.endDate);
+  const isAuctionEnded = new Date() >= cairoToUTC(auction.endDate);
   const images = [
     auction.auctionCover,
     ...(auction.auctionImages || []),

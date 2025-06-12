@@ -60,4 +60,14 @@ export const formatCairoFullDateTime = (date) => {
  */
 export const formatCairoDateOnly = (date) => {
     return formatCairoDate(date, 'MMMM d, yyyy');
+};
+
+/**
+ * Converts any date to UTC ISO string for API calls
+ * @param {string|Date} date - The date to convert
+ * @returns {string} UTC ISO string
+ */
+export const convertToUTC = (date) => {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    return dateObj.toISOString();
 }; 

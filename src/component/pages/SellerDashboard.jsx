@@ -8,6 +8,7 @@ import { format } from "date-fns"
 import { toast } from "react-hot-toast"
 import { AuthContext } from "../contexts/AuthContext"
 import { categoryService } from "../services/api"
+import { convertToUTC } from "../utils/dateUtils"
 
 const SellerDashboard = () => {
     const [overview, setOverview] = useState(null)
@@ -205,8 +206,8 @@ const SellerDashboard = () => {
                     startPrice: parseFloat(formData.startPrice),
                     buyNowPrice: parseFloat(formData.buyNowPrice),
                     minimumBidIncrement: parseFloat(formData.minimumBidIncrement),
-                    startDate: formData.startDate,
-                    endDate: formData.endDate,
+                    startDate: convertToUTC(formData.startDate),
+                    endDate: convertToUTC(formData.endDate),
                     status: formData.status
                 })
             })

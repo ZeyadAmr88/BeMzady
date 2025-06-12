@@ -165,7 +165,7 @@ const Profile = () => {
       });
 
       const response = await userService.updateProfile(user._id, formDataToSend);
-      console.log("res++",response.data)
+      console.log("res++", response.data)
       if (response.data.success === true) {
         const updatedUser = response.data.data;
 
@@ -410,6 +410,13 @@ const Profile = () => {
                 <BarChart2 size={18} className="mr-3" />
                 <span>Dashboard</span>
               </button>
+              <Link
+                to="/my-orders"
+                className="w-full flex items-center px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <Package size={18} className="mr-3" />
+                <span>My Orders</span>
+              </Link>
               <button
                 onClick={() => setActiveTab("security")}
                 className={`w-full flex items-center px-4 py-2 rounded-md ${activeTab === "security"
