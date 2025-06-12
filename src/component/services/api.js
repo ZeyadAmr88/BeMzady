@@ -17,8 +17,7 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log(
-      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${
-        config.url
+      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url
       }`
     );
     const token = localStorage.getItem("token");

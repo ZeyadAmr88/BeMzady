@@ -4,31 +4,30 @@ import React, { useState, useEffect, useContext } from "react"
 import { useNavigate } from "react-router-dom"
 import { auctionService, categoryService } from "../services/api"
 import { toast } from "react-hot-toast"
-import { handleApiError } from "../utils/errorHandler"
 import { Upload, Calendar, DollarSign } from "lucide-react"
+import { cairoToUTC } from "../utils/dateUtils"
 import { AuthContext } from "../contexts/AuthContext"
 
 const CreateAuction = () => {
     const navigate = useNavigate()
     const { user } = useContext(AuthContext)
-    const [loading, setLoading] = useState(false)
-    const [categories, setCategories] = useState([])
     const [formData, setFormData] = useState({
         title: "",
         description: "",
         category: "",
         startPrice: "",
-        reservePrice: "",
         buyNowPrice: "",
         minimumBidIncrement: "",
         startDate: "",
         endDate: "",
         auctionCover: null,
-        auctionImages: [],
+        auctionImages: []
     })
+    const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState(false)
+    const [categories, setCategories] = useState([])
     const [previewCover, setPreviewCover] = useState(null)
     const [previewImages, setPreviewImages] = useState([])
-    const [errors, setErrors] = useState({})
 
     // Fetch categories on component mount
     useEffect(() => {
@@ -111,7 +110,6 @@ const CreateAuction = () => {
         if (!formData.description) newErrors.description = "Description is required"
         if (!formData.category) newErrors.category = "Category is required"
         if (!formData.startPrice) newErrors.startPrice = "Start price is required"
-        if (!formData.reservePrice) newErrors.reservePrice = "Reserve price is required"
         if (!formData.buyNowPrice) newErrors.buyNowPrice = "Buy now price is required"
         if (!formData.minimumBidIncrement) newErrors.minimumBidIncrement = "Minimum bid increment is required"
         if (!formData.startDate) newErrors.startDate = "Start date is required"
@@ -119,13 +117,9 @@ const CreateAuction = () => {
         if (!formData.auctionCover) newErrors.auctionCover = "Cover image is required"
 
         // Price validations
-        if (Number(formData.reservePrice) <= Number(formData.startPrice)) {
-            newErrors.reservePrice = "Reserve price must be higher than start price"
-        }
 
-        if (Number(formData.buyNowPrice) <= Number(formData.reservePrice)) {
-            newErrors.buyNowPrice = "Buy now price must be higher than reserve price"
-        }
+
+
 
         // Date validations
         const startDate = new Date(formData.startDate)
@@ -146,55 +140,44 @@ const CreateAuction = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-
-        if (!validateForm()) {
-            toast.error("Please fix the errors in the form")
-            return
-        }
-
-        setLoading(true)
+        if (!validateForm()) return
 
         try {
-            // Create a FormData object to send to the backend
-            const formDataToSend = new FormData()
+            setLoading(true)
+            // Create a FormData object
+            const formDataToSubmit = new FormData()
 
-            // Add all the text fields
-            formDataToSend.append("title", formData.title)
-            formDataToSend.append("description", formData.description)
-            formDataToSend.append("category", formData.category)
-            formDataToSend.append("startPrice", formData.startPrice)
-            formDataToSend.append("reservePrice", formData.reservePrice)
-            formDataToSend.append("buyNowPrice", formData.buyNowPrice)
-            formDataToSend.append("minimumBidIncrement", formData.minimumBidIncrement)
-            formDataToSend.append("startDate", formData.startDate)
-            formDataToSend.append("endDate", formData.endDate)
+            // Add all text fields
+            formDataToSubmit.append("title", formData.title)
+            formDataToSubmit.append("description", formData.description)
+            formDataToSubmit.append("category", formData.category)
+            formDataToSubmit.append("startPrice", formData.startPrice)
+            formDataToSubmit.append("buyNowPrice", formData.buyNowPrice)
+            formDataToSubmit.append("minimumBidIncrement", formData.minimumBidIncrement)
 
+
+            // Convert dates to UTC and add them
+            formDataToSubmit.append("startDate", cairoToUTC(formData.startDate).toISOString())
+            formDataToSubmit.append("endDate", cairoToUTC(formData.endDate).toISOString())
             // Add the seller ID
             const sellerId = user?._id || localStorage.getItem("user_id")
-            formDataToSend.append("seller", sellerId)
-
-            console.log("Creating auction with seller ID:", sellerId)
-
-            // Add the cover image file directly
+            formDataToSubmit.append("seller", sellerId)
+            // Add files if they exist
             if (formData.auctionCover) {
-                formDataToSend.append("auctionCover", formData.auctionCover)
+                formDataToSubmit.append("auctionCover", formData.auctionCover)
             }
-
-            // Add additional image files directly
             if (formData.auctionImages && formData.auctionImages.length > 0) {
-                for (let i = 0; i < formData.auctionImages.length; i++) {
-                    formDataToSend.append("auctionImages", formData.auctionImages[i])
-                }
+                formData.auctionImages.forEach((image) => {
+                    formDataToSubmit.append("auctionImages", image)
+                })
             }
 
-            // Send the FormData to the backend
-            const response = await auctionService.createAuction(formDataToSend)
+            await auctionService.createAuction(formDataToSubmit)
             toast.success("Auction created successfully!")
-            navigate(`/auctions/${response.data._id}`)
+            navigate("/seller/dashboard")
         } catch (error) {
             console.error("Error creating auction:", error)
-            const errorMessage = handleApiError(error, "Failed to create auction. Please try again.")
-            toast.error(errorMessage)
+            toast.error(error.response?.data?.message || "Failed to create auction")
         } finally {
             setLoading(false)
         }
@@ -287,31 +270,13 @@ const CreateAuction = () => {
                                 {errors.startPrice && <p className="mt-1 text-sm text-red-500">{errors.startPrice}</p>}
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Reserve Price</label>
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-400">
-                                        $
-                                    </span>
-                                    <input
-                                        type="number"
-                                        name="reservePrice"
-                                        value={formData.reservePrice}
-                                        onChange={handleInputChange}
-                                        className={`w-full pl-8 pr-4 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.reservePrice ? "border-red-500" : "border-gray-300 dark:border-gray-600"
-                                            }`}
-                                        min="0"
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                                {errors.reservePrice && <p className="mt-1 text-sm text-red-500">{errors.reservePrice}</p>}
-                            </div>
+
 
                             <div>
                                 <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Buy Now Price</label>
                                 <div className="relative">
                                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-400">
-                                        $
+                                        EGP
                                     </span>
                                     <input
                                         type="number"

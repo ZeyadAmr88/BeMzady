@@ -51,6 +51,9 @@ import AdminOrderManagement from "./component/pages/Admin/AdminOrderManagement";
 import OrderTablePage from "./component/pages/Admin/OrderTablePage";
 import AdminOrderDetailPage from "./component/pages/admin/AdminOrderDetailPage";
 // import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
+
 
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
@@ -130,7 +133,7 @@ function App() {
                       />
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
-                        path="/payment/success"
+                        path="payment/success"
 
                         element={
 
@@ -291,6 +294,19 @@ function App() {
                         element={
                           <ProtectedRoute adminOnly>
                             <AdminOrderDetailPage />
+                      <Route
+                        path="/my-orders"
+                        element={
+                          <ProtectedRoute>
+                            <MyOrders />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/orders/:orderId"
+                        element={
+                          <ProtectedRoute>
+                            <OrderDetails />
                           </ProtectedRoute>
                         }
                       />
