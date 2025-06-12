@@ -106,15 +106,27 @@ export const AuthProvider = ({ children }) => {
             const { token } = response.data
 
             localStorage.setItem("token", token)
-
             setToken(token)
 
             return { success: true }
         } catch (error) {
             console.error("Registration error:", error)
+
+            // Check if we have an array of validation errors
+            if (error.response?.data?.errors) {
+                return {
+                    success: false,
+                    errors: error.response.data.errors // Return the full error objects for field-specific handling
+                }
+            }
+
+            // Fallback to a general error message if no structured errors
             return {
                 success: false,
-                message: error.response?.data?.message || "Registration failed. Please try again.",
+                errors: [{
+                    path: 'general',
+                    msg: error.response?.data?.message || "Registration failed. Please try again."
+                }]
             }
         }
     }

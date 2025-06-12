@@ -10,6 +10,33 @@ const EmailVerification = () => {
     const navigate = useNavigate();
     const inputRefs = useRef([]);
 
+    // Check verification status on component mount
+    useEffect(() => {
+        const checkVerificationStatus = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+
+                const response = await axios.get('https://be-mazady.vercel.app/api/users/MyProfile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.data.success && response.data.data.verified) {
+                    navigate('/');
+                }
+            } catch (error) {
+                console.error('Error checking verification status:', error);
+            }
+        };
+
+        checkVerificationStatus();
+    }, [navigate]);
+
     // Initialize refs for each input
     useEffect(() => {
         inputRefs.current = inputRefs.current.slice(0, 6);
@@ -54,9 +81,15 @@ const EmailVerification = () => {
 
         try {
             const code = verificationCode.join('');
-            const response = await axios.post('https://be-mazady.vercel.app/api/Auth/verify-email', {
-                code: code
-            });
+            const token = localStorage.getItem('token'); // Get token from localStorage
+            const response = await axios.post('https://be-mazady.vercel.app/api/Auth/verify-email',
+                { code: code },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
 
             if (response.data.success) {
                 toast.success('Email verified successfully');
@@ -71,7 +104,15 @@ const EmailVerification = () => {
 
     const handleResendCode = async () => {
         try {
-            const response = await axios.post('https://be-mazady.vercel.app/api/Auth/resend-verification');
+            const token = localStorage.getItem('token');
+            const response = await axios.post('https://be-mazady.vercel.app/api/Auth/resend-verification',
+                {}, // empty body
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
             if (response.data.success) {
                 toast.success('Verification code resent to your email');
             }
