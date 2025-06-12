@@ -319,13 +319,12 @@ export const userService = {
     }
   },
   updateUser: async (userId, userData) => {
-    try {
-      const response = await api.put(`users/${userId}`, userData);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating user ${userId}:`, error);
-      throw error;
-    }
+    // Check if userData is FormData (meaning it might contain a file)
+    const headers =
+      userData instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" };
+    return await api.put(`/users/${userId}`, userData, { headers });
   },
   deleteUser: async (userId) => {
     try {
@@ -561,4 +560,18 @@ export const getUserNotifications = async () => {
     console.error("Error getting user notifications:", error);
     throw error;
   }
+};
+
+export const orderService = {
+  getAllOrders: async ({ page = 1, limit = 10 } = {}) => {
+    return await api.get(`/orders?page=${page}&limit=${limit}`);
+  },
+  getOrderById: (orderId) => api.get(`/orders/${orderId}`),
+  updateOrderStatus: async (orderId, status) => {
+    return await api.put(`/orders/${orderId}/status`, { status });
+  },
+  deleteOrder: (orderId) => api.delete(`/orders/${orderId}`),
+  getOrderDetail: async (orderId) => {
+    return await api.get(`/orders/${orderId}`);
+  },
 };

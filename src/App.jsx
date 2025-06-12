@@ -47,6 +47,10 @@ import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManageme
 import AdminItemManagement from "./component/pages/admin/AdminItemManagement";
 import NotFound from "./component/pages/NotFound";
 import AdminItemDetailPage from "./component/pages/admin/AdminItemDetailPage";
+import AdminOrderManagement from "./component/pages/Admin/AdminOrderManagement";
+import OrderTablePage from "./component/pages/Admin/OrderTablePage";
+import AdminOrderDetailPage from "./component/pages/admin/AdminOrderDetailPage";
+// import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
 
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
@@ -94,6 +98,22 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <AddProduct />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/orders"
+                        element={
+                          <ProtectedRoute>
+                            <AdminOrderManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/orders/table"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <OrderTablePage />
                           </ProtectedRoute>
                         }
                       />
@@ -261,6 +281,16 @@ function App() {
                         element={
                           <ProtectedRoute adminOnly>
                             <AdminItemDetailPage />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Admin Order Detail Route */}
+                      <Route
+                        path="/admin/orders/:orderId"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <AdminOrderDetailPage />
                           </ProtectedRoute>
                         }
                       />
