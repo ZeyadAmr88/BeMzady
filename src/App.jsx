@@ -47,8 +47,8 @@ import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManageme
 import AdminItemManagement from "./component/pages/admin/AdminItemManagement";
 import NotFound from "./component/pages/NotFound";
 import AdminItemDetailPage from "./component/pages/admin/AdminItemDetailPage";
-import AdminOrderManagement from "./component/pages/Admin/AdminOrderManagement";
-import OrderTablePage from "./component/pages/Admin/OrderTablePage";
+import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
+import OrderTablePage from "./component/pages/admin/OrderTablePage";
 import AdminOrderDetailPage from "./component/pages/admin/AdminOrderDetailPage";
 // import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
 import MyOrders from "./pages/MyOrders";
