@@ -54,7 +54,6 @@ import AdminOrderDetailPage from "./component/pages/admin/AdminOrderDetailPage";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
 
-
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
 // import Subcategories from "./component/pages/Subcategories"
@@ -134,12 +133,7 @@ function App() {
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
                         path="payment/success"
-
-                        element={
-
-                          <OrderSuccess />
-
-                        }
+                        element={<OrderSuccess />}
                       />
                       <Route path="/payment/fail" element={<OrderFail />} />
 
@@ -294,6 +288,9 @@ function App() {
                         element={
                           <ProtectedRoute adminOnly>
                             <AdminOrderDetailPage />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route
                         path="/my-orders"
                         element={
