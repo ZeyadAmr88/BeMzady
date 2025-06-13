@@ -5,11 +5,9 @@ import { recommendationService } from "../services/api";
 
 const RecommendationList = ({
     itemId,
-    categoryId,
-    limit = 6,
-    title = "Recommended For You",
+    title = "Similar Items",
     showViewAll = true,
-    viewAllLink = "/auctions"
+    viewAllLink = "/items"
 }) => {
     const { darkMode } = useContext(ThemeContext);
     const [recommendations, setRecommendations] = useState([]);
@@ -22,32 +20,21 @@ const RecommendationList = ({
             try {
                 let response;
                 if (itemId) {
-                    console.log("⌛Fetching recommendations for item:", itemId);
-                    response = await recommendationService.getRecommendationsByItem(itemId);
-                } else if (categoryId) {
-                    const categoryIdValue = typeof categoryId === 'object' && categoryId._id ?
-                        categoryId._id : categoryId;
-                    console.log("Fetching recommendations for category:", categoryIdValue);
-                    response = await recommendationService.getRecommendationsByCategory(categoryIdValue);
-                } else {
-                    console.log("Fetching general recommendations");
-                    response = await recommendationService.getRecommendationsWithFilters({
-                        limit,
-                        sort: "createdAt:-1"
-                    });
+                    const itemIdValue = typeof itemId === 'object' && itemId._id ?
+                        itemId._id : itemId;
+                    console.log("Fetching similar items for:", itemIdValue);
+                    response = await recommendationService.getSimilarItems(itemIdValue);
                 }
 
                 console.log("Recommendation response:", response);
 
-                // Handle different response formats
+                // Handle the response format
                 let recommendationsData = [];
-                if (response.data) {
+                if (response?.data) {
                     if (Array.isArray(response.data)) {
                         recommendationsData = response.data;
                     } else if (response.data.data && Array.isArray(response.data.data)) {
                         recommendationsData = response.data.data;
-                    } else if (response.data.items && Array.isArray(response.data.items)) {
-                        recommendationsData = response.data.items;
                     }
                 }
 
@@ -55,13 +42,13 @@ const RecommendationList = ({
                 setRecommendations(recommendationsData);
                 setError(null);
             } catch (err) {
-                console.error("Error fetching recommendations:", err);
+                console.error("Error fetching similar items:", err);
                 console.error("Error details:", {
                     message: err.message,
                     response: err.response?.data,
                     status: err.response?.status
                 });
-                setError("Unable to load recommendations");
+                setError("Unable to load similar items");
                 setRecommendations([]);
             } finally {
                 setLoading(false);
@@ -69,7 +56,7 @@ const RecommendationList = ({
         };
 
         fetchRecommendations();
-    }, [itemId, categoryId, limit]);
+    }, [itemId]);
 
     if (loading) {
         return (
@@ -78,7 +65,7 @@ const RecommendationList = ({
                     {title}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {[...Array(limit)].map((_, i) => (
+                    {[...Array(4)].map((_, i) => (
                         <div
                             key={i}
                             className={`animate-pulse rounded-lg p-4 ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
@@ -127,10 +114,9 @@ const RecommendationList = ({
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {recommendations.map((item) => (
-                    console.log("🙌",item),
                     <Link
-                            key={item.itemId}
-                        to={`/item/${item.itemId}`}
+                        key={item.itemId}
+                        to={`/items/${item.itemId}`}
                         className={`group block rounded-lg overflow-hidden transition-all duration-200 shadow hover:shadow-md ${darkMode
                             ? "bg-gray-800 hover:bg-gray-750"
                             : "bg-white hover:bg-gray-50"
@@ -138,18 +124,25 @@ const RecommendationList = ({
                     >
                         <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-200">
                             <img
-                                src={item.images?.[0] || item.item_pictures?.[0] || item.item_cover || "/placeholder-item.png"}
-                                alt={item.name || item.title}
+                                src={item.item_cover || "/placeholder-item.png"}
+                                alt={item.title}
                                 className="h-48 w-full object-cover object-center group-hover:opacity-90 transition-opacity"
                             />
                         </div>
                         <div className="p-3">
                             <h3 className={`text-sm font-medium truncate ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
-                                {item.name || item.title}
+                                {item.title}
                             </h3>
-                            <p className={`mt-1 text-sm font-semibold ${darkMode ? "text-rose-400" : "text-rose-600"}`}>
-                                ${item.price ? item.price.toFixed(2) : "N/A"}
-                            </p>
+                            <div className="mt-1 flex flex-col">
+                                <span className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                                    {item.category?.name}
+                                </span>
+                                {item.subcategory?.[0] && (
+                                    <span className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                                        {item.subcategory[0].name}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </Link>
                 ))}

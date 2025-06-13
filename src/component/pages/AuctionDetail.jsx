@@ -8,7 +8,7 @@ import { Clock, Heart, Share2, Flag, User, DollarSign, Tag, Calendar, MessageCir
 import { formatCairoRelativeTime, formatCairoFullDateTime } from "../utils/dateUtils"
 import BidHistory from "../auctions/BidHistory"
 import ItemReviews from "../items/ItemReviews"
-import RelatedAuctions from "../auctions/RelatedAuctions"
+// import RelatedAuctions from "../auctions/RelatedAuctions"
 import { toast } from "react-hot-toast"
 import ContactButton from "../messages/ContactButton";
 import { checkStripeRedirect, redirectToStripePayment } from "../utils/stripeHandler"
@@ -704,11 +704,11 @@ const AuctionDetail = () => {
         </div>
       </div>
 
-      {/* Related Auctions */}
+      {/* Related Auctions
       <RelatedAuctions
         categoryId={auction.category}
         currentAuctionId={auction._id}
-      />
+      /> */}
     </div>
   );
 };
