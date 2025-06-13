@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  categoryService
-} from "../services/api";
+import { subcategoryService } from "../services/api";
 
 // Custom Modal Components (will be defined below)
 const CreateSubcategoryModal = ({
@@ -263,9 +261,10 @@ const AdminSubcategoryManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await categoryService.getSubcategoriesByCategory(id);
-      // Assuming the response data is an array of subcategories
-      setSubcategories(response.data || []);
+      const response = await subcategoryService.getSubcategoriesByCategory(id);
+      // Handle different response formats and ensure we have an array
+      const subcategoriesData = response?.data?.data || response?.data || [];
+      setSubcategories(Array.isArray(subcategoriesData) ? subcategoriesData : []);
     } catch (err) {
       console.error("Error fetching subcategories:", err);
       setError("Failed to fetch subcategories.");
@@ -287,7 +286,7 @@ const AdminSubcategoryManagement = () => {
 
     try {
       // Using POST Create Subcategory API: /api/subcategories
-      await categoryService.createSubcategory(subcategoryData);
+      await subcategoryService.createSubcategory(subcategoryData);
       setIsCreateModalOpen(false);
       setNewSubcategoryName("");
       fetchSubcategories(categoryId); // Refresh list
@@ -315,7 +314,7 @@ const AdminSubcategoryManagement = () => {
 
     try {
       // Using PUT update subcategory API: /api/subcategories/:subcategoryId
-      await categoryService.updateSubcategory(editingSubcategory._id, updatedSubcategoryData);
+      await subcategoryService.updateSubcategory(editingSubcategory._id, updatedSubcategoryData);
       setIsEditModalOpen(false);
       setEditingSubcategory(null);
       setEditSubcategoryName("");
@@ -341,7 +340,7 @@ const AdminSubcategoryManagement = () => {
     setDeleteLoading(true);
     try {
       // Use DEL delete subcategory API: /api/subcategories/:subcategoryId
-      await categoryService.deleteSubcategory(subcategoryToDeleteId);
+      await subcategoryService.deleteSubcategory(subcategoryToDeleteId);
       setIsDeleteModalOpen(false);
       setSubcategoryToDeleteId(null);
       fetchSubcategories(categoryId); // Refresh list
@@ -389,7 +388,7 @@ const AdminSubcategoryManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {subcategories.length === 0 ? (
+            {!Array.isArray(subcategories) || subcategories.length === 0 ? (
               <tr>
                 <td
                   colSpan="2"
@@ -405,7 +404,6 @@ const AdminSubcategoryManagement = () => {
                     {subcategory.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {/* Edit and Delete buttons will go here */}
                     <button
                       onClick={() => openEditModal(subcategory)}
                       className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-600 mr-3"
