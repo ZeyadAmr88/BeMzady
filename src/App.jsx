@@ -53,6 +53,7 @@ import AdminOrderDetailPage from "./component/pages/admin/AdminOrderDetailPage";
 // import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
+import Chatbot from "./components/Chatbot";
 
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
@@ -309,6 +310,7 @@ function App() {
                       />
                     </Routes>
                   </Layout>
+                  <Chatbot />
                   <ToastContainer
                     position="top-right"
                     autoClose={3000}
