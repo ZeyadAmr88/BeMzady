@@ -8,6 +8,7 @@ const Chatbot = () => {
     const [sessionId, setSessionId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [userData, setUserData] = useState(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -17,6 +18,49 @@ const Chatbot = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        if (isOpen && messages.length === 0) {
+            setMessages([{
+                type: 'bot',
+                content: 'Welcome to BeMzady ChatBot! 👋 How can I help you today?'
+            }]);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('No token found');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://be-mazady.vercel.app/api/users/MyProfile', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    setUserData(data.data);
+                }
+            } catch (err) {
+                console.error('Error fetching user data:', err);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     useEffect(() => {
         const initializeChat = async () => {
@@ -49,7 +93,11 @@ const Chatbot = () => {
 
         const userMessage = inputMessage.trim();
         setInputMessage('');
-        setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
+        setMessages(prev => [...prev, {
+            type: 'user',
+            content: userMessage,
+            userName: userData ? `${userData.username} ` : 'User'
+        }]);
         setIsLoading(true);
         setError(null);
 
@@ -95,6 +143,9 @@ const Chatbot = () => {
                 <div className="absolute bottom-16 right-0 w-[350px] sm:w-[400px] h-[500px] bg-gray-900 rounded-lg shadow-xl flex flex-col border border-gray-700">
                     {/* Chat Header */}
                     <div className="p-4 bg-gray-800 text-white rounded-t-lg border-b border-gray-700">
+                        <div className="flex flex-col items-center mb-2">
+                            <h2 className="text-xl font-bold text-blue-400">BeMzady ChatBot</h2>
+                        </div>
                         <h3 className="text-lg font-semibold flex items-center gap-2">
                             <Bot size={20} />
                             Chat with us
@@ -106,8 +157,14 @@ const Chatbot = () => {
                         {messages.map((message, index) => (
                             <div
                                 key={index}
-                                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                                className={`flex flex-col ${message.type === 'user' ? 'items-end' : 'items-start'}`}
                             >
+                                {message.type === 'user' && message.userName && (
+                                    <span className="text-xs text-gray-400 mb-1">{message.userName}</span>
+                                )}
+                                {message.type === 'bot' && (
+                                    <span className="text-xs text-blue-400 mb-1">BeMzady ChatBot</span>
+                                )}
                                 <div
                                     className={`max-w-[80%] rounded-lg p-3 ${message.type === 'user'
                                         ? 'bg-gray-700 text-white'
