@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 "use client";
 import React from "react";
 
@@ -184,7 +185,6 @@ const Navbar = () => {
     const fetchUnreadMessageCount = async () => {
       try {
         const response = await messageService.getUnreadCount();
-        console.log("😀response", response);
         // Handle different response formats safely
         const count =
           response?.data?.data?.count ||
@@ -193,7 +193,6 @@ const Navbar = () => {
           0;
         setUnreadMessageCount(count);
       } catch (error) {
-        console.error("Error fetching unread message count:", error);
         // Set to 0 on error to avoid UI issues
         setUnreadMessageCount(0);
       }
