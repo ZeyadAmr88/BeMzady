@@ -16,7 +16,7 @@ export const api = axios.create({
 // Add a request interceptor to include the token in all requests
 api.interceptors.request.use(
   (config) => {
-  
+
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -58,7 +58,7 @@ export const auctionService = {
   getAuctionById: (id) => api.get(`/auctions/${id}`),
   placeBid: (auctionId, amount) => {
     const bidderId = localStorage.getItem("user_id");
-  
+
     return api.post(`/auctions/${auctionId}/bid`, {
       bidder: bidderId,
       amount: amount,
@@ -67,7 +67,7 @@ export const auctionService = {
   buyNow: (auctionId) => {
     // eslint-disable-next-line no-unused-vars
     const buyerId = localStorage.getItem("user_id");
-  
+
     return api.post(`/auctions/${auctionId}/buy-now`);
   },
   endAuction: (auctionId) => api.post(`/auctions/${auctionId}/end`),
@@ -476,11 +476,7 @@ export const messageService = {
 };
 
 export const recommendationService = {
-  getRecommendationsByItem: (itemId) => api.get(`/recommendations/${itemId}`),
-  getRecommendationsByCategory: (categoryId) =>
-    api.get(`/recommendations/${categoryId}`),
-  getRecommendationsWithFilters: (filters) =>
-    api.get("/recommendations", { params: filters }),
+  getSimilarItems: (itemId) => api.get(`/recommendations/${itemId}`),
 };
 
 // Notification APIs

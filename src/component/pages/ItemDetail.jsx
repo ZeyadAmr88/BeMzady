@@ -236,7 +236,18 @@ const ItemDetail = () => {
                 </span>
               )}
             </div>
-
+            <div className="mb-6">
+              <h2 className="text-lg font-medium mb-2">Category</h2>
+              <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">
+                {item.category.name}
+              </p>
+            </div>
+            <div className="mb-6">
+              <h2 className="text-lg font-medium mb-2">SubCategory</h2>
+              <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">
+                {item.subcategory[0].name}
+              </p>
+            </div>
             <div className="mb-6">
               <h2 className="text-lg font-medium mb-2">Description</h2>
               <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">
@@ -348,14 +359,7 @@ const ItemDetail = () => {
         />
       )}
 
-      {/* If you also want to show category-based recommendations */}
-      {item && item.category && (
-        <RecommendationList
-          categoryId={item.category._id}
-          title={`More Items in ${item.category.name}`}
-          viewAllLink={`/items?category=${item.category._id}`}
-        />
-      )}
+   
     </div>
   );
 };
