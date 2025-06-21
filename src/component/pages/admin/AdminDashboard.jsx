@@ -5,6 +5,7 @@ import {
   categoryService,
   auctionService,
   itemService,
+  orderService,
 } from "../../services/api";
 import Toast from "../../common/Toast";
 
@@ -15,6 +16,7 @@ const AdminDashboard = () => {
   const [totalCategories, setTotalCategories] = useState("?");
   const [totalAuctions, setTotalAuctions] = useState("?");
   const [totalItems, setTotalItems] = useState("?");
+  const [totalOrders, setTotalOrders] = useState("?");
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({
     show: false,
@@ -103,6 +105,21 @@ const AdminDashboard = () => {
           setTotalItems("N/A");
           showToast("Failed to load item count", "error");
         }
+
+        // Fetch Total Orders
+        const ordersResponse = await orderService.getAllOrders({
+          page: 1,
+          limit: 1,
+        });
+        if (ordersResponse.count !== undefined) {
+          setTotalOrders(ordersResponse.count);
+        } else if (ordersResponse.data?.count !== undefined) {
+          setTotalOrders(ordersResponse.data.count);
+        } else {
+          console.warn("count not found in orders response", ordersResponse);
+          setTotalOrders("N/A");
+          showToast("Failed to load order count", "error");
+        }
       } catch (err) {
         console.error("Error fetching dashboard counts:", err);
         setError("Failed to load dashboard data.");
@@ -111,6 +128,7 @@ const AdminDashboard = () => {
         setTotalCategories("Error");
         setTotalAuctions("Error");
         setTotalItems("Error");
+        setTotalOrders("Error");
       } finally {
         setIsLoading(false);
       }
@@ -235,6 +253,7 @@ const AdminDashboard = () => {
               />
             </svg>
           }
+          onClick={() => handleNavigation("/admin/auctions")}
         />
         <StatCard
           title="Total Items"
@@ -256,6 +275,27 @@ const AdminDashboard = () => {
             </svg>
           }
           onClick={() => handleNavigation("/admin/items")}
+        />
+        <StatCard
+          title="Total Orders"
+          value={totalOrders}
+          color="text-yellow-600"
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 14l6-6m-3 0l-3 3m6-3l-3 3M17 17H7a2 2 0 01-2-2V8a2 2 0 012-2h10a2 2 0 012 2v7a2 2 0 01-2 2z"
+              />
+            </svg>
+          }
+          onClick={() => handleNavigation("/admin/orders")}
         />
       </div>
 
@@ -341,7 +381,34 @@ const AdminDashboard = () => {
           }
           onClick={() => handleNavigation("/admin/items")}
         />
+        <ManagementCard
+          title="Order Management"
+          description="View and manage all customer orders."
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 14l6-6m-3 0l-3 3m6-3l-3 3M17 17H7a2 2 0 01-2-2V8a2 2 0 012-2h10a2 2 0 012 2v7a2 2 0 01-2 2z"
+              />
+            </svg>
+          }
+          onClick={() => handleNavigation("/admin/orders")}
+        />
       </div>
+
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={hideToast}
+      />
     </div>
   );
 };

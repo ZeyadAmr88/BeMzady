@@ -8,6 +8,7 @@ import {
 import AuctionFormModal from "../../common/AuctionFormModal";
 import ConfirmationModal from "../../common/ConfirmationModal";
 import Toast from "../../common/Toast";
+import { convertToUTC } from "../../utils/dateUtils";
 
 const AdminAuctionManagement = () => {
   const navigate = useNavigate();
@@ -176,7 +177,12 @@ const AdminAuctionManagement = () => {
           auctionFormData[key] !== null &&
           auctionFormData[key] !== ""
         ) {
-          data.append(key, auctionFormData[key]);
+          // Convert dates to UTC
+          if (key === "startDate" || key === "endDate") {
+            data.append(key, convertToUTC(auctionFormData[key]));
+          } else {
+            data.append(key, auctionFormData[key]);
+          }
         }
       }
 

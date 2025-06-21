@@ -47,6 +47,13 @@ import AdminAuctionManagement from "./component/pages/admin/AdminAuctionManageme
 import AdminItemManagement from "./component/pages/admin/AdminItemManagement";
 import NotFound from "./component/pages/NotFound";
 import AdminItemDetailPage from "./component/pages/admin/AdminItemDetailPage";
+import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
+import OrderTablePage from "./component/pages/admin/OrderTablePage";
+import AdminOrderDetailPage from "./component/pages/admin/AdminOrderDetailPage";
+// import AdminOrderManagement from "./component/pages/admin/AdminOrderManagement";
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
+import Chatbot from "./components/Chatbot";
 
 // import ProfileAuctions from "./component/pages/ProfileAuctions"
 // import SubcategoryPage from "./component/pages/SubcategoryPage"
@@ -97,6 +104,22 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/admin/orders"
+                        element={
+                          <ProtectedRoute>
+                            <AdminOrderManagement />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/orders/table"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <OrderTablePage />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route path="/items" element={<Items />} />
                       <Route path="/items/:id" element={<ItemDetail />} />
                       <Route path="/categories" element={<Categories />} />
@@ -110,13 +133,8 @@ function App() {
                       />
                       {/* <Route path="/subcategory/:id" element={<CategoryPage />} /> */}
                       <Route
-                        path="/payment/success"
-
-                        element={
-
-                          <OrderSuccess />
-
-                        }
+                        path="payment/success"
+                        element={<OrderSuccess />}
                       />
                       <Route path="/payment/fail" element={<OrderFail />} />
 
@@ -264,8 +282,35 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+
+                      {/* Admin Order Detail Route */}
+                      <Route
+                        path="/admin/orders/:orderId"
+                        element={
+                          <ProtectedRoute adminOnly>
+                            <AdminOrderDetailPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/my-orders"
+                        element={
+                          <ProtectedRoute>
+                            <MyOrders />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/orders/:orderId"
+                        element={
+                          <ProtectedRoute>
+                            <OrderDetails />
+                          </ProtectedRoute>
+                        }
+                      />
                     </Routes>
                   </Layout>
+                  <Chatbot />
                   <ToastContainer
                     position="top-right"
                     autoClose={3000}

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 "use client";
 import React from "react";
 
@@ -65,13 +66,13 @@ const scrollbarStyles = `
 `;
 
 const Navbar = () => {
-  const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const { darkMode } = useContext(ThemeContext);
   const { user, logout } = useContext(AuthContext);
   const { unreadCount } = useContext(NotificationContext);
   const { cartCount } = useContext(CartContext);
   const [categories, setCategories] = useState([]);
   const [categoriesWithSubs, setCategoriesWithSubs] = useState([]);
-  const [hoveredCategory, setHoveredCategory] = useState(null);
+  // const [hoveredCategory, setHoveredCategory] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -83,7 +84,7 @@ const Navbar = () => {
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
   const categoryMenuRef = useRef(null);
-  const categoryTimeoutRef = useRef(null);
+  // const categoryTimeoutRef = useRef(null);
   const notificationDropdownRef = useRef(null);
 
   // Fetch all categories and subcategories when component mounts
@@ -184,7 +185,6 @@ const Navbar = () => {
     const fetchUnreadMessageCount = async () => {
       try {
         const response = await messageService.getUnreadCount();
-        console.log("😀response", response);
         // Handle different response formats safely
         const count =
           response?.data?.data?.count ||
@@ -193,7 +193,6 @@ const Navbar = () => {
           0;
         setUnreadMessageCount(count);
       } catch (error) {
-        console.error("Error fetching unread message count:", error);
         // Set to 0 on error to avoid UI issues
         setUnreadMessageCount(0);
       }
@@ -208,6 +207,7 @@ const Navbar = () => {
     return () => clearInterval(intervalId);
   }, [user]);
 
+  // eslint-disable-next-line no-unused-vars
   const handleCategoryClick = (categoryId) => {
     setIsCategoryMenuOpen(false);
     navigate(`/items?category=${categoryId}`);
@@ -216,8 +216,8 @@ const Navbar = () => {
   return (
     <header
       className={`sticky top-0 z-50 backdrop-blur-md ${darkMode
-          ? "bg-gray-900/80 border-b border-gray-800"
-          : "bg-white/80 border-b border-gray-200"
+        ? "bg-gray-900/80 border-b border-gray-800"
+        : "bg-white/80 border-b border-gray-200"
         } shadow-sm`}
     >
       {/* Add scrollbar styles */}
@@ -268,8 +268,8 @@ const Navbar = () => {
               {isCategoryMenuOpen && (
                 <div
                   className={`absolute left-0 mt-2 w-64 max-h-[70vh] overflow-y-auto rounded-lg shadow-lg ${darkMode
-                      ? "bg-gray-800/90 backdrop-blur-sm scrollbar-dark"
-                      : "bg-white/90 backdrop-blur-sm scrollbar-light"
+                    ? "bg-gray-800/90 backdrop-blur-sm scrollbar-dark"
+                    : "bg-white/90 backdrop-blur-sm scrollbar-light"
                     } ring-1 ring-black/5 z-50`}
                 >
                   {loading ? (
@@ -293,8 +293,8 @@ const Navbar = () => {
                             <Link
                               to={`/items?category=${category._id}`}
                               className={`flex justify-between items-center px-4 py-2 text-sm font-medium transition-colors duration-200 ${darkMode
-                                  ? "hover:bg-gray-700/50 text-gray-300"
-                                  : "hover:bg-gray-100/50 text-gray-600"
+                                ? "hover:bg-gray-700/50 text-gray-300"
+                                : "hover:bg-gray-100/50 text-gray-600"
                                 }`}
                               onClick={() => setIsCategoryMenuOpen(false)}
                             >
@@ -317,8 +317,8 @@ const Navbar = () => {
                                       key={subcategory._id}
                                       to={`/subcategory/${subcategory.slug}`}
                                       className={`block px-3 py-1.5 text-xs rounded transition-colors duration-200 ${darkMode
-                                          ? "hover:bg-gray-700/50 text-gray-400"
-                                          : "hover:bg-gray-100/50 text-gray-500"
+                                        ? "hover:bg-gray-700/50 text-gray-400"
+                                        : "hover:bg-gray-100/50 text-gray-500"
                                         }`}
                                       onClick={() =>
                                         setIsCategoryMenuOpen(false)
@@ -340,8 +340,8 @@ const Navbar = () => {
                         to="/categories"
                         onClick={() => setIsCategoryMenuOpen(false)}
                         className={`block px-4 py-2 text-sm font-semibold transition-colors duration-200 ${darkMode
-                            ? "text-rose-400 hover:bg-gray-700/50"
-                            : "text-rose-600 hover:bg-gray-100/50"
+                          ? "text-rose-400 hover:bg-gray-700/50"
+                          : "text-rose-600 hover:bg-gray-100/50"
                           }`}
                       >
                         View All Categories
@@ -371,8 +371,8 @@ const Navbar = () => {
                   type="text"
                   placeholder="Search auctions..."
                   className={`w-full py-2 pl-4 pr-10 rounded-full border transition-all duration-200 ${darkMode
-                      ? "bg-gray-800/50 border-gray-700 focus:border-rose-500 focus:ring-rose-500/20"
-                      : "bg-gray-100/50 border-gray-200 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "bg-gray-800/50 border-gray-700 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "bg-gray-100/50 border-gray-200 focus:border-rose-500 focus:ring-rose-500/20"
                     } focus:outline-none focus:ring-2`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -389,15 +389,15 @@ const Navbar = () => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
-           
+
 
             {user ? (
               <>
                 <Link
                   to="/cart"
                   className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                      ? "hover:bg-gray-700/50 text-gray-300"
-                      : "hover:bg-gray-200/50 text-gray-600"
+                    ? "hover:bg-gray-700/50 text-gray-300"
+                    : "hover:bg-gray-200/50 text-gray-600"
                     }`}
                 >
                   <ShoppingCart size={20} />
@@ -412,8 +412,8 @@ const Navbar = () => {
                   <button
                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                     className={`relative p-2 rounded-full transition-all duration-200 ${darkMode
-                        ? "hover:bg-gray-700/50 text-gray-300"
-                        : "hover:bg-gray-200/50 text-gray-600"
+                      ? "hover:bg-gray-700/50 text-gray-300"
+                      : "hover:bg-gray-200/50 text-gray-600"
                       }`}
                     aria-label="Notifications"
                   >
@@ -468,8 +468,8 @@ const Navbar = () => {
                   {/* Dropdown on hover */}
                   <div
                     className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${darkMode
-                        ? "bg-gray-800/90 backdrop-blur-sm"
-                        : "bg-white/90 backdrop-blur-sm"
+                      ? "bg-gray-800/90 backdrop-blur-sm"
+                      : "bg-white/90 backdrop-blur-sm"
                       } ring-1 ring-black/5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200`}
                   >
                     <div
@@ -488,8 +488,8 @@ const Navbar = () => {
                       <Link
                         to="/profile"
                         className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                            ? "hover:bg-gray-700/50 text-gray-300"
-                            : "hover:bg-gray-100/50 text-gray-600"
+                          ? "hover:bg-gray-700/50 text-gray-300"
+                          : "hover:bg-gray-100/50 text-gray-600"
                           }`}
                       >
                         Profile
@@ -497,8 +497,8 @@ const Navbar = () => {
                       <Link
                         to="/products/add"
                         className={`block px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                            ? "hover:bg-gray-700/50 text-gray-300"
-                            : "hover:bg-gray-100/50 text-gray-600"
+                          ? "hover:bg-gray-700/50 text-gray-300"
+                          : "hover:bg-gray-100/50 text-gray-600"
                           }`}
                       >
                         Add Product
@@ -506,8 +506,8 @@ const Navbar = () => {
                       <button
                         onClick={handleLogout}
                         className={`block w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${darkMode
-                            ? "hover:bg-gray-700/50 text-gray-300"
-                            : "hover:bg-gray-100/50 text-gray-600"
+                          ? "hover:bg-gray-700/50 text-gray-300"
+                          : "hover:bg-gray-100/50 text-gray-600"
                           }`}
                       >
                         Sign out
@@ -519,12 +519,16 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-md ${darkMode
-                    ? "hover:bg-primary-700/50 text-primary-300"
-                    : "hover:bg-primary-200/50 text-primary-600"
+                className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${darkMode
+                  ? "bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400"
+                  : "bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400"
                   }`}
               >
-                Login
+                <span className="flex items-center gap-2">
+                  <User size={18} />
+                  Login
+                </span>
+                <span className="absolute inset-0 rounded-lg bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
               </Link>
             )}
 

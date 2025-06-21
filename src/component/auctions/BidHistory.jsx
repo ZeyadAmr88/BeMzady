@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { userService } from "../services/api"
-import { formatDistanceToNow } from "date-fns"
+import { formatCairoRelativeTime, formatCairoFullDateTime } from "../utils/dateUtils"
 import { User } from "lucide-react"
 
 const BidHistory = ({ bids = [] }) => {
@@ -72,71 +72,47 @@ const BidHistory = ({ bids = [] }) => {
     }
 
     return (
-        <div>
-            <h2 className="text-xl font-bold mb-4">
-                Bid History
-                {userLoading && (
-                    <span className="ml-2 inline-block">
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-rose-600"></div>
-                    </span>
-                )}
-            </h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                            >
-                                Bidder
-                            </th>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                            >
-                                Amount
-                            </th>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                            >
-                                Time
-                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bidder</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Time</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {bids.map((bid, index) => (
-                            <tr
-                                key={bid._id || index}
-                                className={index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}
-                            >
+                        {bids.map((bid) => (
+                            <tr key={bid._id}>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
-                                        {bidderInfo[bid.bidder]?.profilePicture ? (
+                                        {bidderInfo[bid.bidder]?.user_picture ? (
                                             <img
-                                                src={bidderInfo[bid.bidder].profilePicture || "/placeholder.svg"}
+                                                src={bidderInfo[bid.bidder].user_picture}
                                                 alt={bidderInfo[bid.bidder].username}
                                                 className="w-8 h-8 rounded-full mr-3"
                                             />
                                         ) : (
-                                            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mr-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mr-3">
                                                 <User size={16} className="text-gray-500 dark:text-gray-400" />
                                             </div>
                                         )}
-                                        <span className="font-medium">
-                                            {bidderInfo[bid.bidder]?.username || "Anonymous"}
-                                        </span>
+                                        <div>
+                                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                {bidderInfo[bid.bidder]?.username || "Unknown"}
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="text-rose-600 font-medium">${bid.amount.toFixed(2)}</span>
+                                <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
+                                    ${bid.amount.toFixed(2)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
                                     {bid.createdAt ? (
                                         <div>
-                                            <div>{formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}</div>
-                                            <div className="text-xs mt-1">{new Date(bid.createdAt).toLocaleString()}</div>
+                                            <div>{formatCairoRelativeTime(bid.createdAt)}</div>
+                                            <div className="text-xs mt-1">{formatCairoFullDateTime(bid.createdAt)}</div>
                                         </div>
                                     ) : (
                                         "Unknown time"

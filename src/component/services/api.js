@@ -16,11 +16,7 @@ export const api = axios.create({
 // Add a request interceptor to include the token in all requests
 api.interceptors.request.use(
   (config) => {
-    console.log(
-      `Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${
-        config.url
-      }`
-    );
+
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -36,7 +32,6 @@ api.interceptors.request.use(
 // Add a response interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => {
-    console.log(`Response from ${response.config.url}:`, response.status);
     return response;
   },
   (error) => {
@@ -55,25 +50,7 @@ api.interceptors.response.use(
   }
 );
 
-// // Export all services as a single object
-// export const services = {
-//   auction: auctionService,
-//   bid: bidService,
-//   category: categoryService,
-//   subcategory: subcategoryService,
-//   item: itemService,
-//   user: userService,
-//   cart: cartService,
-//   message: messageService,
-//   recommendation: recommendationService,
-//   notification: {
-//     create: createNotification,
-//     markAsRead,
-//     markAllAsRead,
-//     getUnreadCount,
-//     getUserNotifications
-//   }
-// };
+
 
 // Individual service exports
 export const auctionService = {
@@ -81,19 +58,16 @@ export const auctionService = {
   getAuctionById: (id) => api.get(`/auctions/${id}`),
   placeBid: (auctionId, amount) => {
     const bidderId = localStorage.getItem("user_id");
-    console.log(
-      `Placing bid: Auction ID: ${auctionId}, Bidder ID: ${bidderId}, Amount: ${amount}`
-    );
+
     return api.post(`/auctions/${auctionId}/bid`, {
       bidder: bidderId,
       amount: amount,
     });
   },
   buyNow: (auctionId) => {
+    // eslint-disable-next-line no-unused-vars
     const buyerId = localStorage.getItem("user_id");
-    console.log(
-      `Buying auction: Auction ID: ${auctionId}, Buyer ID: ${buyerId}`
-    );
+
     return api.post(`/auctions/${auctionId}/buy-now`);
   },
   endAuction: (auctionId) => api.post(`/auctions/${auctionId}/end`),
@@ -102,7 +76,6 @@ export const auctionService = {
       try {
         const userId = localStorage.getItem("user_id");
         if (!userId) {
-          console.error("User ID not found in localStorage.");
           return Promise.reject(new Error("User not authenticated"));
         }
 
@@ -125,7 +98,6 @@ export const auctionService = {
           },
         });
       } catch (error) {
-        console.error("Error creating auction:", error);
         return Promise.reject(error);
       }
     })(formData),
@@ -319,13 +291,12 @@ export const userService = {
     }
   },
   updateUser: async (userId, userData) => {
-    try {
-      const response = await api.put(`users/${userId}`, userData);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating user ${userId}:`, error);
-      throw error;
-    }
+    // Check if userData is FormData (meaning it might contain a file)
+    const headers =
+      userData instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" };
+    return await api.put(`/users/${userId}`, userData, { headers });
   },
   deleteUser: async (userId) => {
     try {
@@ -505,11 +476,7 @@ export const messageService = {
 };
 
 export const recommendationService = {
-  getRecommendationsByItem: (itemId) => api.get(`/recommendations/${itemId}`),
-  getRecommendationsByCategory: (categoryId) =>
-    api.get(`/recommendations/${categoryId}`),
-  getRecommendationsWithFilters: (filters) =>
-    api.get("/recommendations", { params: filters }),
+  getSimilarItems: (itemId) => api.get(`/recommendations/${itemId}`),
 };
 
 // Notification APIs
@@ -561,4 +528,18 @@ export const getUserNotifications = async () => {
     console.error("Error getting user notifications:", error);
     throw error;
   }
+};
+
+export const orderService = {
+  getAllOrders: async ({ page = 1, limit = 10 } = {}) => {
+    return await api.get(`/orders?page=${page}&limit=${limit}`);
+  },
+  getOrderById: (orderId) => api.get(`/orders/${orderId}`),
+  updateOrderStatus: async (orderId, status) => {
+    return await api.put(`/orders/${orderId}/status`, { status });
+  },
+  deleteOrder: (orderId) => api.delete(`/orders/${orderId}`),
+  getOrderDetail: async (orderId) => {
+    return await api.get(`/orders/${orderId}`);
+  },
 };

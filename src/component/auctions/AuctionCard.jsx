@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
 import { Clock, Heart, BadgeCheck } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { formatCairoRelativeTime } from "../utils/dateUtils"
 import { userService } from "../services/api"
 import { AuthContext } from "../contexts/AuthContext"
 import { ThemeContext } from "../contexts/ThemeContext"
 
-const AuctionCard = ({ auction, isHot = false }) => {
+const AuctionCard = ({ auction = false }) => {
     const [timeLeft, setTimeLeft] = useState("")
     const [isFavorite, setIsFavorite] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -22,17 +22,15 @@ const AuctionCard = ({ auction, isHot = false }) => {
 
     useEffect(() => {
         const updateTimeLeft = () => {
-            // Try both endTime and endDate fields
-            const endTime = auction?.endTime || auction?.endDate
-            if (endTime) {
-                const endDate = new Date(endTime)
+            if (auction.endDate) {
+                const endDate = new Date(auction.endDate)
                 const now = new Date()
                 const distance = endDate - now
 
                 if (distance < 0) {
                     setTimeLeft("Auction ended")
                 } else {
-                    setTimeLeft(formatDistanceToNow(endDate, { addSuffix: true }))
+                    setTimeLeft(formatCairoRelativeTime(endDate))
                 }
             }
         }
@@ -41,7 +39,7 @@ const AuctionCard = ({ auction, isHot = false }) => {
         const timer = setInterval(updateTimeLeft, 1000)
 
         return () => clearInterval(timer)
-    }, [auction?.endTime, auction?.endDate])
+    }, [auction.endTime])
 
     useEffect(() => {
         const checkFavoriteStatus = async () => {
@@ -143,7 +141,7 @@ const AuctionCard = ({ auction, isHot = false }) => {
                         Current Bid
                     </span>
                     <div className="text-rose-600 font-semibold">
-                        {auction.currentBid || auction.startingBid} EGP
+                        {auction.currentPrice || auction.startingBid} EGP
                     </div>
                 </div>
                 <div className="flex items-center text-sm text-gray-400">

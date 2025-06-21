@@ -12,10 +12,36 @@ const EditUserModal = ({
 }) => {
   if (!isOpen || !editingUser) return null;
 
+  const [imagePreview, setImagePreview] = useState(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditUserData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditUserData((prev) => ({ ...prev, user_picture: file }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setEditUserData((prev) => ({ ...prev, user_picture: undefined }));
+      setImagePreview(null);
+    }
+  };
+
+  useEffect(() => {
+    // Set initial image preview if editing an existing user with a picture
+    if (editingUser.user_picture) {
+      setImagePreview(editingUser.user_picture);
+    } else {
+      setImagePreview(null);
+    }
+  }, [editingUser]);
 
   // Add more specific validation or input masking if needed
 
@@ -160,6 +186,38 @@ const EditUserModal = ({
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-rose-500 focus:border-rose-500 dark:bg-gray-700 dark:text-gray-100"
               />
+            </div>
+
+            {/* User Picture Input */}
+            <div className="md:col-span-2">
+              <label
+                htmlFor="user_picture"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Profile Picture
+              </label>
+              <input
+                type="file"
+                id="user_picture"
+                name="user_picture"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-900 dark:text-gray-100
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-rose-50 file:text-rose-700
+                  hover:file:bg-rose-100 dark:file:bg-gray-700 dark:file:text-gray-100 dark:hover:file:bg-gray-600"
+              />
+              {imagePreview && (
+                <div className="mt-2">
+                  <img
+                    src={imagePreview}
+                    alt="Profile Preview"
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Role takes full width on small screens, half on medium */}

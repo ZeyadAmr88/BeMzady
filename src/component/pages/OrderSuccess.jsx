@@ -186,6 +186,12 @@ const OrderSuccess = () => {
                     Continue Shopping
                 </button>
                 <button
+                    onClick={() => navigate("/my-orders")}
+                    className="px-6 py-2 bg-green-500 dark:bg-green-600 text-white rounded-md hover:bg-green-600 dark:hover:bg-green-700 transition-colors mr-4"
+                >
+                    View All Orders
+                </button>
+                <button
                     onClick={() => navigate("/profile")}
                     className="px-6 py-2 border border-blue-500 dark:border-blue-400 text-blue-500 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
                 >

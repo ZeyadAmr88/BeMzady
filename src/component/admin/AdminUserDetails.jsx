@@ -113,7 +113,30 @@ const AdminUserDetails = () => {
           : undefined,
       };
 
-      await userService.updateUser(userId, updatedData);
+      const dataToSend = new FormData();
+
+      // Append all fields from updatedData
+      for (const key in updatedData) {
+        if (Object.prototype.hasOwnProperty.call(updatedData, key)) {
+          dataToSend.append(key, updatedData[key]);
+        }
+      }
+
+      // If user_picture is a File object, append it separately
+      if (editUserData.user_picture instanceof File) {
+        dataToSend.append("user_picture", editUserData.user_picture);
+      } else if (editUserData.user_picture === null) {
+        // If user_picture is explicitly set to null (e.g., to remove existing picture)
+        dataToSend.append("user_picture", ""); // Send empty string or a specific marker to backend for removal
+      } else if (
+        typeof editUserData.user_picture === "string" &&
+        editUserData.user_picture !== user.user_picture
+      ) {
+        // If it's a string and different from original, it might be a direct URL update
+        dataToSend.append("user_picture", editUserData.user_picture);
+      }
+
+      await userService.updateUser(userId, dataToSend);
       setIsEditModalOpen(false);
       setEditUserData({});
       fetchUserDetails(); // Refresh user details
@@ -250,6 +273,18 @@ const AdminUserDetails = () => {
                   {user.verified ? "Verified" : "Not Verified"}
                 </p>
               </div>
+              {user.user_picture && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Profile Picture
+                  </label>
+                  <img
+                    src={user.user_picture}
+                    alt={`${user.username}'s profile`}
+                    className="w-24 h-24 rounded-full object-cover shadow-sm"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
                   Created At
